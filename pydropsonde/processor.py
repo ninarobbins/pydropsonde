@@ -1052,6 +1052,7 @@ class Sonde:
 
         return self
 
+<<<<<<< HEAD
     def recalc_rh_and_ta(self):
         ds = self._prep_l3_ds
         ds = hh.calc_rh_from_q(ds)
@@ -1073,6 +1074,8 @@ class Sonde:
         object.__setattr__(self, "_prep_l3_ds", ds)
         return self
 
+=======
+>>>>>>> 98ac175 (change altitude from gpsalt to alt)
     def remove_non_mono_incr_alt(self, alt_var="alt"):
         """
         This function removes the indices in the some height variable that are not monotonically increasing
@@ -1114,9 +1117,14 @@ class Sonde:
             warnings.warn(
                 f"your altitude for sonde {self._prep_l3_ds.sonde_id.values} is not sorted."
             )
+<<<<<<< HEAD
         ds = (self._prep_l3_ds.swap_dims({"time": alt_var})).load()
         if p_log:
             ds = ds.assign(p=(ds.p.dims, np.log(ds.p.values), ds.p.attrs))
+=======
+        ds = self._prep_l3_ds.swap_dims({"time": alt_var}).load()
+
+>>>>>>> 98ac175 (change altitude from gpsalt to alt)
         if method == "linear_interpolate":
             interp_ds = ds.interp({alt_var: interpolation_grid})
         elif method == "bin":
@@ -1126,6 +1134,7 @@ class Sonde:
                 interp_stop - interp_step / 2,
                 interp_step,
             )
+<<<<<<< HEAD
             try:
                 interp_ds = ds.groupby_bins(
                     alt_var,
@@ -1135,6 +1144,13 @@ class Sonde:
             except ValueError:
                 warnings.warn(f"No level 2 data for sonde {self.serial_id}")
                 return None
+=======
+            interp_ds = ds.groupby_bins(
+                alt_var,
+                interpolation_bins,
+                labels=interpolation_label,
+            ).mean(dim=alt_var)
+>>>>>>> 98ac175 (change altitude from gpsalt to alt)
             # somehow coordinates are lost and need to be added again
             for coord in ["lat", "lon", "time", "gpsalt"]:
                 interp_ds = interp_ds.assign_coords(
@@ -1157,6 +1173,7 @@ class Sonde:
                 .interpolate_na(
                     dim=f"{alt_var}_bins", max_gap=max_gap_fill, use_coordinate=True
                 )
+<<<<<<< HEAD
                 .rename({f"{alt_var}_bins": alt_var, "time": "interp_time"})
                 .reset_coords(["interp_time", "lat", "lon", "gpsalt"])
             )
@@ -1164,6 +1181,9 @@ class Sonde:
         if p_log:
             interp_ds = interp_ds.assign(
                 p=(interp_ds.p.dims, np.exp(interp_ds.p.values), interp_ds.p.attrs)
+=======
+                .rename({f"{alt_var}_bins": alt_var, "time": "interpolated_time"})
+>>>>>>> 98ac175 (change altitude from gpsalt to alt)
             )
 
         object.__setattr__(self, "_prep_l3_ds", interp_ds)

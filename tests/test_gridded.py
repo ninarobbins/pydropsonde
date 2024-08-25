@@ -24,8 +24,4 @@ def test_l3_dir_name(gridded):
 
 def test_l3_default(gridded):
     gridded.get_l3_filename()
-<<<<<<< HEAD
     assert gridded.l3_filename == l3_default
-=======
-    assert gridded.l3_filename == l3_default
->>>>>>> 98fc497 (fix gridded tests)
