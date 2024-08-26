@@ -64,11 +64,8 @@ class Sonde:
         flight_id : str
             The flight ID of the flight during which the sonde was launched
         """
-<<<<<<< HEAD
         if not flight_template is None:
-=======
-        if flight_template is not None:
->>>>>>> 02c4043 (cleanup for l3)
+
             flight_id = flight_template.format(flight_id=flight_id)
 
         object.__setattr__(self, "flight_id", flight_id)
@@ -1238,24 +1235,14 @@ class Gridded:
 
     def get_l3_filename(self, l3_filename: str = None):
         if l3_filename is None:
-<<<<<<< HEAD
             l3_filename = hh.l3_filename
         else:
             l3_filename = l3_filename
-=======
-            if l3_filename_template is None:
-                l3_filename = hh.l3_filename_template.format(
-                    platform=self.platform_id,
-                )
-            else:
-                l3_filename = l3_filename_template.format(
-                    platform=self.platform_id,
-                )
->>>>>>> fc532cb (rearrange data... again)
 
         self.l3_filename = l3_filename
 
         return self
+
 
     def write_l3(self, l3_dir: str = None):
         if l3_dir is None:
