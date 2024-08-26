@@ -65,7 +65,6 @@ class Sonde:
             The flight ID of the flight during which the sonde was launched
         """
         if not flight_template is None:
-
             flight_id = flight_template.format(flight_id=flight_id)
 
         object.__setattr__(self, "flight_id", flight_id)
