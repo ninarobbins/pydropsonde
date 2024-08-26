@@ -122,7 +122,7 @@ class Sonde:
         object.__setattr__(self, "afile", path_to_afile)
         return self
 
-    def add_level_dir(self, l0_dir: str = None, l1_dir: str = None, l2_dir: str = None):
+def add_level_dir(self, l0_dir: str = None, l1_dir: str = None, l2_dir: str = None):
         if l0_dir is None:
             if not hasattr(self, "afile"):
                 raise ValueError("No afile in sonde. Cannot continue")
@@ -1233,9 +1233,20 @@ class Gridded:
 
     def get_l3_filename(self, l3_filename: str = None):
         if l3_filename is None:
+<<<<<<< HEAD
             l3_filename = hh.l3_filename
         else:
             l3_filename = l3_filename
+=======
+            if l3_filename_template is None:
+                l3_filename = hh.l3_filename_template.format(
+                    platform=self.platform_id,
+                )
+            else:
+                l3_filename = l3_filename_template.format(
+                    platform=self.platform_id,
+                )
+>>>>>>> fc532cb (rearrange data... again)
 
         self.l3_filename = l3_filename
 
