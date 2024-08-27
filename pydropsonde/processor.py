@@ -64,7 +64,11 @@ class Sonde:
         flight_id : str
             The flight ID of the flight during which the sonde was launched
         """
+<<<<<<< HEAD
         if not flight_template is None:
+=======
+        if flight_template is not None:
+>>>>>>> 02c4043 (cleanup for l3)
             flight_id = flight_template.format(flight_id=flight_id)
 
         object.__setattr__(self, "flight_id", flight_id)
@@ -122,7 +126,8 @@ class Sonde:
         object.__setattr__(self, "afile", path_to_afile)
         return self
 
-def add_level_dir(self, l0_dir: str = None, l1_dir: str = None, l2_dir: str = None):
+
+    def add_level_dir(self, l0_dir: str = None, l1_dir: str = None, l2_dir: str = None):
         if l0_dir is None:
             if not hasattr(self, "afile"):
                 raise ValueError("No afile in sonde. Cannot continue")
