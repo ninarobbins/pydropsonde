@@ -64,6 +64,10 @@ class Sonde:
         flight_id : str
             The flight ID of the flight during which the sonde was launched
         """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 4f86f87 (JOANNE L4 functions)
         if not flight_template is None:
             flight_id = flight_template.format(flight_id=flight_id)
 
@@ -1052,7 +1056,6 @@ class Sonde:
 
         return self
 
-<<<<<<< HEAD
     def recalc_rh_and_ta(self):
         ds = self._prep_l3_ds
         ds = hh.calc_rh_from_q(ds)
@@ -1074,8 +1077,6 @@ class Sonde:
         object.__setattr__(self, "_prep_l3_ds", ds)
         return self
 
-=======
->>>>>>> 98ac175 (change altitude from gpsalt to alt)
     def remove_non_mono_incr_alt(self, alt_var="alt"):
         """
         This function removes the indices in the some height variable that are not monotonically increasing
@@ -1117,14 +1118,9 @@ class Sonde:
             warnings.warn(
                 f"your altitude for sonde {self._prep_l3_ds.sonde_id.values} is not sorted."
             )
-<<<<<<< HEAD
         ds = (self._prep_l3_ds.swap_dims({"time": alt_var})).load()
         if p_log:
             ds = ds.assign(p=(ds.p.dims, np.log(ds.p.values), ds.p.attrs))
-=======
-        ds = self._prep_l3_ds.swap_dims({"time": alt_var}).load()
-
->>>>>>> 98ac175 (change altitude from gpsalt to alt)
         if method == "linear_interpolate":
             interp_ds = ds.interp({alt_var: interpolation_grid})
         elif method == "bin":
@@ -1134,7 +1130,6 @@ class Sonde:
                 interp_stop - interp_step / 2,
                 interp_step,
             )
-<<<<<<< HEAD
             try:
                 interp_ds = ds.groupby_bins(
                     alt_var,
@@ -1144,13 +1139,6 @@ class Sonde:
             except ValueError:
                 warnings.warn(f"No level 2 data for sonde {self.serial_id}")
                 return None
-=======
-            interp_ds = ds.groupby_bins(
-                alt_var,
-                interpolation_bins,
-                labels=interpolation_label,
-            ).mean(dim=alt_var)
->>>>>>> 98ac175 (change altitude from gpsalt to alt)
             # somehow coordinates are lost and need to be added again
             for coord in ["lat", "lon", "time", "gpsalt"]:
                 interp_ds = interp_ds.assign_coords(
@@ -1173,7 +1161,6 @@ class Sonde:
                 .interpolate_na(
                     dim=f"{alt_var}_bins", max_gap=max_gap_fill, use_coordinate=True
                 )
-<<<<<<< HEAD
                 .rename({f"{alt_var}_bins": alt_var, "time": "interp_time"})
                 .reset_coords(["interp_time", "lat", "lon", "gpsalt"])
             )
@@ -1181,43 +1168,9 @@ class Sonde:
         if p_log:
             interp_ds = interp_ds.assign(
                 p=(interp_ds.p.dims, np.exp(interp_ds.p.values), interp_ds.p.attrs)
-=======
-                .rename({f"{alt_var}_bins": alt_var, "time": "interpolated_time"})
->>>>>>> 98ac175 (change altitude from gpsalt to alt)
             )
 
         object.__setattr__(self, "_prep_l3_ds", interp_ds)
-        return self
-
-    def add_attributes_as_var(self):
-        """
-        Prepares l2 datasets to be concatenated to gridded.
-        adds all attributes as variables to avoid conflicts when concatenating because attributes are different
-        (and not lose information)
-        """
-        _prep_l3_ds = self._prep_l3_ds
-        for attr, value in self._prep_l3_ds.attrs.items():
-            _prep_l3_ds[attr] = value
-
-        _prep_l3_ds.attrs.clear()
-        object.__setattr__(self, "_prep_l3_ds", _prep_l3_ds)
-        return self
-
-    def make_prep_interim(self):
-        object.__setattr__(self, "_interim_l3_ds", self._prep_l3_ds)
-        return self
-
-    def save_interim_l3(self, interim_l3_path: str = None, interim_l3_name: str = None):
-        if interim_l3_path is None:
-            interim_l3_path = self.l2_dir.replace("Level_2", "Level_3_interim").replace(
-                self.flight_id, ""
-            )
-        if interim_l3_name is None:
-            interim_l3_name = "interim_l3_{sonde_id}_{version}.nc".format(
-                sonde_id=self.serial_id, version=__version__
-            )
-        os.makedirs(interim_l3_path, exist_ok=True)
-        self._interim_l3_ds.to_netcdf(os.path.join(interim_l3_path, interim_l3_name))
         return self
 
 
@@ -1248,6 +1201,7 @@ class Gridded:
                 .replace(list(self.sondes.values())[0].flight_id, "")
                 .replace(list(self.sondes.values())[0].platform_id, "")
             )
+
         else:
             raise ValueError("No sondes and no l3 directory given, cannot continue ")
         return self
@@ -1287,6 +1241,38 @@ class Circle:
     _interim_l3_ds: xr.Dataset
     flight_id: str
     platform_id: str
+<<<<<<< HEAD
+=======
+    l4_dir: str = field(default=None)
+    l4_filename: str = field(default=None)
+    level3_ds: xr.Dataset = field(default=None)
+    yaml_directory: str = field(default=None)
+    sonde_ids: list = field(default_factory=list)
+    circle_times: list = field(default_factory=list)
+    flight_date: list = field(default_factory=list)
+    platform_name: list = field(default_factory=list)
+    segment_id: list = field(default_factory=list)
+    circles: list = field(default_factory=list)
+    all_sondes: xr.Dataset = field(default=None)
+    mean_parameter: np.ndarray = field(default_factory=lambda: np.array([]))
+    m_parameter: np.ndarray = field(default_factory=lambda: np.array([]))
+    c_parameter: np.ndarray = field(default_factory=lambda: np.array([]))
+    Ns: np.ndarray = field(default_factory=lambda: np.array([]))
+    D: xr.DataArray = field(default=None)
+    vor: xr.DataArray = field(default=None)
+    intercept: np.ndarray = field(default_factory=lambda: np.array([]))
+    dudx: np.ndarray = field(default_factory=lambda: np.array([]))
+    dudy: np.ndarray = field(default_factory=lambda: np.array([]))
+    u_: np.ndarray = field(default_factory=lambda: np.array([]))
+    u: xr.DataArray = field(default=None)
+    v: xr.DataArray = field(default=None)
+    q: xr.DataArray = field(default=None)
+    dx: xr.DataArray = field(default=None)
+    dy: xr.DataArray = field(default=None)
+    ta: xr.DataArray = field(default=None)
+    p: xr.DataArray = field(default=None)
+    alt: xr.DataArray = field(default=None)
+>>>>>>> cb31bc5 (JOANNE L4 functions)
 
     def get_l4_dir(self, l4_dir: str = None):
         if l4_dir:
