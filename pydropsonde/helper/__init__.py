@@ -124,7 +124,6 @@ l2_filename_template = "{platform}_{launch_time}_{flight_id}_{serial_id}_Level_2
 
 l3_filename = "Level_3.nc"
 
-
 def get_bool(s):
     if isinstance(s, bool):
         return s
