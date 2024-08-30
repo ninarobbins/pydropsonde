@@ -1204,6 +1204,8 @@ class Sonde:
 @dataclass(order=True)
 class Gridded:
     sondes: dict
+    flight_id: str
+    platform_id: str
 
     def concat_sondes(self):
         """
