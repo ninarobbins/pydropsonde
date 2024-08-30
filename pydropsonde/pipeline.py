@@ -275,7 +275,11 @@ def iterate_Sonde_method_over_dict_of_Sondes_objects(
     my_dict = obj
     for function_name in functions:
         new_dict = {}
+<<<<<<< HEAD
         for key, value in tqdm(my_dict.items()):
+=======
+        for key, value in my_dict.items():
+>>>>>>> 1680357 (remove flight_id and platform from gridded)
             if value.cont:
                 function = getattr(Sonde, function_name)
                 result = function(value, **get_args_for_function(config, function))
@@ -283,7 +287,15 @@ def iterate_Sonde_method_over_dict_of_Sondes_objects(
                     new_dict[key] = result
             else:
                 new_dict[key] = value
+<<<<<<< HEAD
             my_dict = new_dict.copy()
+=======
+                print(
+                    f"I skipped {function_name} because the interim l3 is already there for sonde {value.serial_id}."
+                )
+        my_dict = new_dict
+
+>>>>>>> 1680357 (remove flight_id and platform from gridded)
     return my_dict
 
 
