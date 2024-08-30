@@ -462,16 +462,19 @@ pipeline = {
             "check_interim_l3",
             "get_l2_filename",
             "add_l2_ds",
-            "create_prep_l3",
             "add_q_and_theta_to_l2_ds",
             "add_iwv",
             "remove_non_mono_incr_alt",
             "interpolate_alt",
+<<<<<<< HEAD
             "recalc_rh_and_ta",
             "add_wind",
             "add_attributes_as_var",
             "make_prep_interim",
             "save_interim_l3",
+=======
+            "add_attributes_as_var",
+>>>>>>> b2740f8 (rename prepare l3 to add_attribute)
         ],
         "output": "sondes",
         "comment": "This step reads from the saved L2 files and prepares individual sonde datasets before they can be concatenated to create L3.",
