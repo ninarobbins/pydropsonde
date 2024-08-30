@@ -313,7 +313,11 @@ def gridded_to_pattern(
     """
     The flight-phase segmentation file must be provided via the config file.
     """
-    pass
+    flight_id = list(gridded.values())[0].flight_id
+    platform_id = list(gridded.values())[0].platform_id
+    patterns = Circle(gridded, flight_id, platform_id)
+
+    return patterns
 
 
 def run_substep(
