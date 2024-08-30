@@ -309,7 +309,7 @@ def iterate_Sonde_method_over_dict_of_Sondes_objects(
 
 
 def sondes_to_gridded(sondes: dict, config: configparser.ConfigParser):
-    gridded = Gridded(sondes, flight_id="test_id", platform_id="test_id")
+    gridded = Gridded(sondes)
     gridded.concat_sondes()
     return gridded
 
