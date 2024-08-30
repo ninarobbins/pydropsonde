@@ -1,6 +1,6 @@
 from .helper.paths import Platform, Flight
 from .helper.__init__ import path_to_flight_ids, path_to_l0_files
-from .processor import Sonde, Gridded
+from .processor import Sonde, Gridded, Circle
 import configparser
 import inspect
 from tqdm import tqdm
