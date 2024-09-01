@@ -178,3 +178,55 @@ def get_spatial_coordinates_at_launch(a_file: str) -> List:
 
     else:
         return []
+
+
+def get_circle_times_from_yaml(yaml_directory: str):
+    allyamlfiles = sorted(glob.glob(yaml_directory + "*.yaml"))
+
+    circle_times = []
+    sonde_ids = []
+    flight_date = []
+    platform_name = []
+    segment_id = []
+
+    for i in allyamlfiles:
+        with open(i) as source:
+            flightinfo = yaml.load(source, Loader=yaml.SafeLoader)
+
+        circle_times.append(
+            [
+                (c["start"], c["end"])
+                for c in flightinfo["segments"]
+                if "circle" in c["kinds"]
+                if len(c["dropsondes"]["GOOD"]) >= 6
+            ]
+        )
+
+        sonde_ids.append(
+            [
+                c["dropsondes"]["GOOD"]
+                for c in flightinfo["segments"]
+                if "circle" in c["kinds"]
+                if len(c["dropsondes"]["GOOD"]) >= 6
+            ]
+        )
+
+        segment_id.append(
+            [
+                (c["segment_id"])
+                for c in flightinfo["segments"]
+                if "circle" in c["kinds"]
+                if len(c["dropsondes"]["GOOD"]) >= 6
+            ]
+        )
+
+        if "HALO" in i:
+            platform_name.append("HALO")
+        elif "P3" in i:
+            platform_name.append("P3")
+        else:
+            platform_name.append("")
+
+        flight_date.append(np.datetime64(date.strftime(flightinfo["date"], "%Y-%m-%d")))
+
+    return sonde_ids, circle_times, flight_date, platform_name, segment_id

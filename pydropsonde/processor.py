@@ -64,10 +64,7 @@ class Sonde:
         flight_id : str
             The flight ID of the flight during which the sonde was launched
         """
-<<<<<<< HEAD
-=======
 
->>>>>>> 4f86f87 (JOANNE L4 functions)
         if not flight_template is None:
             flight_id = flight_template.format(flight_id=flight_id)
 
