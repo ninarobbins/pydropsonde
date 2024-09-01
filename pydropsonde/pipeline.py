@@ -242,6 +242,90 @@ def create_and_populate_flight_object(
     return output["platforms"], output["sondes"]
 
 
+def get_circle_times_from_yaml(config: configparser.ConfigParser):
+
+    yaml_directory = config.get("MANDATORY", "segments_directory")
+    allyamlfiles = sorted(glob.glob(yaml_directory + "*.yaml"))
+
+    circle_times = []
+    sonde_ids = []
+    flight_date = []
+    platform_name = []
+    segment_id = []
+
+    for i in allyamlfiles:
+        with open(i) as source:
+            flightinfo = yaml.load(source, Loader=yaml.SafeLoader)
+
+        circle_times.append(
+            [
+                (c["start"], c["end"])
+                for c in flightinfo["segments"]
+                if "circle" in c["kinds"]
+                if len(c["dropsondes"]["GOOD"]) >= 6
+            ]
+        )
+
+        sonde_ids.append(
+            [
+                c["dropsondes"]["GOOD"]
+                for c in flightinfo["segments"]
+                if "circle" in c["kinds"]
+                if len(c["dropsondes"]["GOOD"]) >= 6
+            ]
+        )
+
+        segment_id.append(
+            [
+                (c["segment_id"])
+                for c in flightinfo["segments"]
+                if "circle" in c["kinds"]
+                if len(c["dropsondes"]["GOOD"]) >= 6
+            ]
+        )
+
+        if "HALO" in i:
+            platform_name.append("HALO")
+        elif "P3" in i:
+            platform_name.append("P3")
+        else:
+            platform_name.append("")
+
+        flight_date.append(np.datetime64(date.strftime(flightinfo["date"], "%Y-%m-%d")))
+
+    return sonde_ids, circle_times, flight_date, platform_name, segment_id
+
+
+def create_and_populate_circles(config: configparser.ConfigParser):
+
+    circles = []
+
+    (
+        sonde_ids,
+        circle_times,
+        flight_date,
+        platform_name,
+        segment_id,
+    ) = get_circle_times_from_yaml(config)
+
+    for i in range(len(self.flight_date)):
+        for j in range(len(self.circle_times[i])):
+            if len(self.sonde_ids[i]) != 0:
+                circle_ds = self.level3_ds.sel(sonde_id=self.sonde_ids[i][j])
+                circle_ds["segment_id"] = self.segment_id[i][j]
+                circle_ds = circle_ds.pad(
+                    sonde_id=(0, 13 - int(len(circle_ds.sonde_id))), mode="constant"
+                )
+                circle_ds["sounding"] = (
+                    ["sonde_id"],
+                    np.arange(0, 13, 1, dtype="int"),
+                )
+                circle_ds = circle_ds.swap_dims({"sonde_id": "sounding"})
+                circles.append(circle_ds)
+
+    return circles
+
+
 def iterate_Sonde_method_over_dict_of_Sondes_objects(
     obj: dict, functions: list, config: configparser.ConfigParser
 ) -> dict:
