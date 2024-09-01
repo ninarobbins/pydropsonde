@@ -296,36 +296,6 @@ def get_circle_times_from_yaml(config: configparser.ConfigParser):
     return sonde_ids, circle_times, flight_date, platform_name, segment_id
 
 
-def create_and_populate_circles(config: configparser.ConfigParser):
-
-    circles = []
-
-    (
-        sonde_ids,
-        circle_times,
-        flight_date,
-        platform_name,
-        segment_id,
-    ) = get_circle_times_from_yaml(config)
-
-    for i in range(len(self.flight_date)):
-        for j in range(len(self.circle_times[i])):
-            if len(self.sonde_ids[i]) != 0:
-                circle_ds = self.level3_ds.sel(sonde_id=self.sonde_ids[i][j])
-                circle_ds["segment_id"] = self.segment_id[i][j]
-                circle_ds = circle_ds.pad(
-                    sonde_id=(0, 13 - int(len(circle_ds.sonde_id))), mode="constant"
-                )
-                circle_ds["sounding"] = (
-                    ["sonde_id"],
-                    np.arange(0, 13, 1, dtype="int"),
-                )
-                circle_ds = circle_ds.swap_dims({"sonde_id": "sounding"})
-                circles.append(circle_ds)
-
-    return circles
-
-
 def iterate_Sonde_method_over_dict_of_Sondes_objects(
     obj: dict, functions: list, config: configparser.ConfigParser
 ) -> dict:
@@ -412,17 +382,39 @@ def iterate_method_over_dataset(
     return result
 
 
-def gridded_to_pattern(
+def gridded_to_circles(
     gridded: xr.Dataset, config: configparser.ConfigParser
 ) -> xr.Dataset:
     """
     The flight-phase segmentation file must be provided via the config file.
     """
-    flight_id = list(gridded.values())[0].flight_id
-    platform_id = list(gridded.values())[0].platform_id
-    patterns = Circle(gridded, flight_id, platform_id)
 
-    return patterns
+    circles = []
+
+    (
+        sonde_ids,
+        circle_times,
+        flight_date,
+        platform_name,
+        segment_id,
+    ) = get_circle_times_from_yaml(config)
+
+    for i in range(len(self.flight_date)):
+        for j in range(len(self.circle_times[i])):
+            if len(self.sonde_ids[i]) != 0:
+                circle_ds = gridded.sel(sonde_id=self.sonde_ids[i][j])
+                circle_ds["segment_id"] = self.segment_id[i][j]
+                circle_ds = circle_ds.pad(
+                    sonde_id=(0, 13 - int(len(circle_ds.sonde_id))), mode="constant"
+                )
+                circle_ds["sounding"] = (
+                    ["sonde_id"],
+                    np.arange(0, 13, 1, dtype="int"),
+                )
+                circle_ds = circle_ds.swap_dims({"sonde_id": "sounding"})
+                circles.append(circle_ds)
+
+    return circles
 
 
 def run_substep(
