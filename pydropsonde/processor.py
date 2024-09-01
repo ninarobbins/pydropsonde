@@ -1241,38 +1241,6 @@ class Circle:
     _interim_l3_ds: xr.Dataset
     flight_id: str
     platform_id: str
-<<<<<<< HEAD
-=======
-    l4_dir: str = field(default=None)
-    l4_filename: str = field(default=None)
-    level3_ds: xr.Dataset = field(default=None)
-    yaml_directory: str = field(default=None)
-    sonde_ids: list = field(default_factory=list)
-    circle_times: list = field(default_factory=list)
-    flight_date: list = field(default_factory=list)
-    platform_name: list = field(default_factory=list)
-    segment_id: list = field(default_factory=list)
-    circles: list = field(default_factory=list)
-    all_sondes: xr.Dataset = field(default=None)
-    mean_parameter: np.ndarray = field(default_factory=lambda: np.array([]))
-    m_parameter: np.ndarray = field(default_factory=lambda: np.array([]))
-    c_parameter: np.ndarray = field(default_factory=lambda: np.array([]))
-    Ns: np.ndarray = field(default_factory=lambda: np.array([]))
-    D: xr.DataArray = field(default=None)
-    vor: xr.DataArray = field(default=None)
-    intercept: np.ndarray = field(default_factory=lambda: np.array([]))
-    dudx: np.ndarray = field(default_factory=lambda: np.array([]))
-    dudy: np.ndarray = field(default_factory=lambda: np.array([]))
-    u_: np.ndarray = field(default_factory=lambda: np.array([]))
-    u: xr.DataArray = field(default=None)
-    v: xr.DataArray = field(default=None)
-    q: xr.DataArray = field(default=None)
-    dx: xr.DataArray = field(default=None)
-    dy: xr.DataArray = field(default=None)
-    ta: xr.DataArray = field(default=None)
-    p: xr.DataArray = field(default=None)
-    alt: xr.DataArray = field(default=None)
->>>>>>> cb31bc5 (JOANNE L4 functions)
 
     def get_l4_dir(self, l4_dir: str = None):
         if l4_dir:
