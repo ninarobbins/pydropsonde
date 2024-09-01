@@ -7,127 +7,21 @@ class Circle:
     Every `Circle` mandatorily has a `circle` identifier in the format "HALO-240811-c1".
     """
 
-    _interim_l3_ds: xr.Dataset
+    level3_ds: xr.Dataset
+    circle: str
     flight_id: str
     platform_id: str
-
-    def get_l4_dir(self, l4_dir: str = None):
-        if l4_dir:
-            self.l4_dir = l4_dir
-        elif self._interim_l3_ds is not None:
-            self.l4_dir = list(self._interim_l3_ds.values())[0].l4_dir
-        else:
-            raise ValueError("No sondes and no l4 directory given, cannot continue")
-        return self
-
-    def get_l4_filename(
-        self, l4_filename_template: str = None, l4_filename: str = None
-    ):
-        if l4_filename is None:
-            if l4_filename_template is None:
-                l4_filename = "some_default_template_{platform}_{flight_id}.nc".format(
-                    platform=self.platform_id,
-                    flight_id=self.flight_id,
-                )
-            else:
-                l4_filename = l4_filename_template.format(
-                    platform=self.platform_id,
-                    flight_id=self.flight_id,
-                )
-
-        self.l4_filename = l4_filename
-
-        return self
-
-    def write_l4(self, l4_dir: str = None):
-        if l4_dir is None:
-            l4_dir = self.l4_dir
-
-        if not os.path.exists(l4_dir):
-            os.makedirs(l4_dir)
-
-        self._interim_l4_ds.to_netcdf(os.path.join(l4_dir, self.l4_filename))
-
-        return self
-
-    def get_level3_dataset(self, lv3_directory, lv3_filename):
-        self.level3_ds = xr.open_dataset(lv3_directory + "/" + lv3_filename)
-        return self
-
-    def get_circle_times_from_yaml(self, yaml_directory):
-
-        self.yaml_directory = yaml_directory
-
-        allyamlfiles = sorted(glob.glob(self.yaml_directory + "*.yaml"))
-
-        circle_times = []
-        sonde_ids = []
-        flight_date = []
-        platform_name = []
-        segment_id = []
-
-        for i in allyamlfiles:
-            with open(i) as source:
-                flightinfo = yaml.load(source, Loader=yaml.SafeLoader)
-
-            circle_times.append(
-                [
-                    (c["start"], c["end"])
-                    for c in flightinfo["segments"]
-                    if "circle" in c["kinds"]
-                    if len(c["dropsondes"]["GOOD"]) >= 6
-                ]
-            )
-
-            sonde_ids.append(
-                [
-                    c["dropsondes"]["GOOD"]
-                    for c in flightinfo["segments"]
-                    if "circle" in c["kinds"]
-                    if len(c["dropsondes"]["GOOD"]) >= 6
-                ]
-            )
-
-            segment_id.append(
-                [
-                    (c["segment_id"])
-                    for c in flightinfo["segments"]
-                    if "circle" in c["kinds"]
-                    if len(c["dropsondes"]["GOOD"]) >= 6
-                ]
-            )
-
-            if "HALO" in i:
-                platform_name.append("HALO")
-            elif "P3" in i:
-                platform_name.append("P3")
-            else:
-                platform_name.append("")
-
-            flight_date.append(np.datetime64(flightinfo["date"]))
-
-        self.sonde_ids = sonde_ids
-        self.circle_times = circle_times
-        self.flight_date = flight_date
-        self.platform_name = platform_name
-        self.segment_id = segment_id
-
-        return self
 
     def dim_ready_ds(self):
 
         dims_to_drop = ["sounding"]
 
-        all_sondes = self.level3_ds.swap_dims({"sounding": "sonde_id"}).drop(
-            dims_to_drop
-        )
+        all_sondes = level3_ds.swap_dims({"sounding": "sonde_id"}).drop(dims_to_drop)
 
         self.all_sondes = all_sondes
         return self
 
     def get_circles(self):
-
-        self.get_level3_dataset(self.l3_dir, self.l3_filename)
 
         self.get_circle_times_from_yaml(self.yaml_directory)
 
@@ -390,5 +284,44 @@ class Circle:
         self.circle_with_std_err = self.add_std_err_terms()
 
         print("All circle products retrieved!")
+
+        return self
+
+    def get_l4_dir(self, l4_dir: str = None):
+        if l4_dir:
+            self.l4_dir = l4_dir
+        elif level3_ds is not None:
+            self.l4_dir = list(level3_ds.values())[0].l4_dir
+        else:
+            raise ValueError("No sondes and no l4 directory given, cannot continue")
+        return self
+
+    def get_l4_filename(
+        self, l4_filename_template: str = None, l4_filename: str = None
+    ):
+        if l4_filename is None:
+            if l4_filename_template is None:
+                l4_filename = "some_default_template_{platform}_{flight_id}.nc".format(
+                    platform=self.platform_id,
+                    flight_id=self.flight_id,
+                )
+            else:
+                l4_filename = l4_filename_template.format(
+                    platform=self.platform_id,
+                    flight_id=self.flight_id,
+                )
+
+        self.l4_filename = l4_filename
+
+        return self
+
+    def write_l4(self, l4_dir: str = None):
+        if l4_dir is None:
+            l4_dir = self.l4_dir
+
+        if not os.path.exists(l4_dir):
+            os.makedirs(l4_dir)
+
+        self._interim_l4_ds.to_netcdf(os.path.join(l4_dir, self.l4_filename))
 
         return self
