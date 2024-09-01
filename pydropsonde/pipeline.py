@@ -1,7 +1,7 @@
 from .helper.paths import Platform, Flight
 from .helper.__init__ import path_to_flight_ids, path_to_l0_files
 from .processor import Sonde, Gridded
-from .circle_processor import Circle
+from .circle_processor import Circle, Circle_Gridded
 import configparser
 import inspect
 from tqdm import tqdm
@@ -466,7 +466,7 @@ def iterate_Circle_method_over_dict_of_Circle_objects(
 
 def circles_to_gridded(circles: dict, config: configparser.ConfigParser):
     gridded = Circle_Gridded(circles)
-    gridded.concat_circles()
+    gridded.concatenate_circles()
     return gridded
 
 
@@ -640,14 +640,13 @@ pipeline = {
     "process_L4": {
         "intake": "circles",
         "apply": iterate_Circle_method_over_dict_of_Circle_objects,
-        "functions": ["get_l4_dir", "get_l4_filename", "write_l4"],
+        "functions": [],
         "output": "circles",
-        "comment": "This step creates the L4 dataset after adding additional products and saves the L4 dataset.",
+        "comment": "This step creates the L4 dataset after adding additional products.",
     },
     "create_L4": {
         "intake": "circles",
-        "apply": concatenate_circles,
-        "functions": ["get_l4_dir", "get_l4_filename", "write_l4"],
+        "apply": circles_to_gridded,
         "output": "all_circles",
         "comment": "This step concatenates the individual circle datasets to create the L4 dataset.",
     },

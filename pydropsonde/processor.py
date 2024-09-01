@@ -1107,7 +1107,7 @@ class Sonde:
         method: str = "bin",
     ):
         """
-        Ineterpolate sonde data along comon altitude grid to prepare concatenation
+        Interpolate sonde data along comon altitude grid to prepare concatenation
         """
         interpolation_grid = np.arange(interp_start, interp_stop, interp_step)
 

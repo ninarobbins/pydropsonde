@@ -42,7 +42,7 @@ class Circle_Gridded:
 
     circles: dict
 
-    def concat_circles(self):
+    def concatenate_circles(self):
         """
         function to concatenate all circles using the combination of all measurement times and launch times
         """
