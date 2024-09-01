@@ -21,30 +21,6 @@ class Circle:
         self.all_sondes = all_sondes
         return self
 
-    def get_circles(self):
-
-        self.get_circle_times_from_yaml(self.yaml_directory)
-
-        circles = []
-
-        for i in range(len(self.flight_date)):
-            for j in range(len(self.circle_times[i])):
-                if len(self.sonde_ids[i]) != 0:
-                    circle_ds = self.level3_ds.sel(sonde_id=self.sonde_ids[i][j])
-                    circle_ds["segment_id"] = self.segment_id[i][j]
-                    circle_ds = circle_ds.pad(
-                        sonde_id=(0, 13 - int(len(circle_ds.sonde_id))), mode="constant"
-                    )
-                    circle_ds["sounding"] = (
-                        ["sonde_id"],
-                        np.arange(0, 13, 1, dtype="int"),
-                    )
-                    circle_ds = circle_ds.swap_dims({"sonde_id": "sounding"})
-                    circles.append(circle_ds)
-
-        self.circles = circles
-        return self
-
     def reswap_launchtime_sounding(self):
 
         for circle in self.circles:
