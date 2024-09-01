@@ -1,11 +1,13 @@
 from .helper.paths import Platform, Flight
 from .helper.__init__ import path_to_flight_ids, path_to_l0_files
-from .processor import Sonde, Gridded, Circle
+from .processor import Sonde, Gridded
+from .circle_processor import Circle
 import configparser
 import inspect
 from tqdm import tqdm
 import os
 import xarray as xr
+import glob
 
 
 def get_mandatory_args(function):
@@ -242,60 +244,6 @@ def create_and_populate_flight_object(
     return output["platforms"], output["sondes"]
 
 
-def get_circle_times_from_yaml(config: configparser.ConfigParser):
-
-    yaml_directory = config.get("MANDATORY", "segments_directory")
-    allyamlfiles = sorted(glob.glob(yaml_directory + "*.yaml"))
-
-    circle_times = []
-    sonde_ids = []
-    flight_date = []
-    platform_name = []
-    segment_id = []
-
-    for i in allyamlfiles:
-        with open(i) as source:
-            flightinfo = yaml.load(source, Loader=yaml.SafeLoader)
-
-        circle_times.append(
-            [
-                (c["start"], c["end"])
-                for c in flightinfo["segments"]
-                if "circle" in c["kinds"]
-                if len(c["dropsondes"]["GOOD"]) >= 6
-            ]
-        )
-
-        sonde_ids.append(
-            [
-                c["dropsondes"]["GOOD"]
-                for c in flightinfo["segments"]
-                if "circle" in c["kinds"]
-                if len(c["dropsondes"]["GOOD"]) >= 6
-            ]
-        )
-
-        segment_id.append(
-            [
-                (c["segment_id"])
-                for c in flightinfo["segments"]
-                if "circle" in c["kinds"]
-                if len(c["dropsondes"]["GOOD"]) >= 6
-            ]
-        )
-
-        if "HALO" in i:
-            platform_name.append("HALO")
-        elif "P3" in i:
-            platform_name.append("P3")
-        else:
-            platform_name.append("")
-
-        flight_date.append(np.datetime64(date.strftime(flightinfo["date"], "%Y-%m-%d")))
-
-    return sonde_ids, circle_times, flight_date, platform_name, segment_id
-
-
 def iterate_Sonde_method_over_dict_of_Sondes_objects(
     obj: dict, functions: list, config: configparser.ConfigParser
 ) -> dict:
@@ -382,14 +330,68 @@ def iterate_method_over_dataset(
     return result
 
 
-def gridded_to_circles(
+def get_circle_times_from_yaml(config: configparser.ConfigParser):
+
+    yaml_directory = config.get("MANDATORY", "segments_directory")
+    allyamlfiles = sorted(glob.glob(yaml_directory + "*.yaml"))
+
+    circle_times = []
+    sonde_ids = []
+    flight_date = []
+    platform_name = []
+    segment_id = []
+
+    for i in allyamlfiles:
+        with open(i) as source:
+            flightinfo = yaml.load(source, Loader=yaml.SafeLoader)
+
+        circle_times.append(
+            [
+                (c["start"], c["end"])
+                for c in flightinfo["segments"]
+                if "circle" in c["kinds"]
+                if len(c["dropsondes"]["GOOD"]) >= 6
+            ]
+        )
+
+        sonde_ids.append(
+            [
+                c["dropsondes"]["GOOD"]
+                for c in flightinfo["segments"]
+                if "circle" in c["kinds"]
+                if len(c["dropsondes"]["GOOD"]) >= 6
+            ]
+        )
+
+        segment_id.append(
+            [
+                (c["segment_id"])
+                for c in flightinfo["segments"]
+                if "circle" in c["kinds"]
+                if len(c["dropsondes"]["GOOD"]) >= 6
+            ]
+        )
+
+        if "HALO" in i:
+            platform_name.append("HALO")
+        elif "P3" in i:
+            platform_name.append("P3")
+        else:
+            platform_name.append("")
+
+        flight_date.append(np.datetime64(date.strftime(flightinfo["date"], "%Y-%m-%d")))
+
+    return sonde_ids, circle_times, flight_date, platform_name, segment_id
+
+
+def create_and_populate_circles_object(
     gridded: xr.Dataset, config: configparser.ConfigParser
 ) -> xr.Dataset:
     """
     The flight-phase segmentation file must be provided via the config file.
     """
 
-    circles = []
+    circles = {}
 
     (
         sonde_ids,
@@ -399,11 +401,11 @@ def gridded_to_circles(
         segment_id,
     ) = get_circle_times_from_yaml(config)
 
-    for i in range(len(self.flight_date)):
-        for j in range(len(self.circle_times[i])):
-            if len(self.sonde_ids[i]) != 0:
-                circle_ds = gridded.sel(sonde_id=self.sonde_ids[i][j])
-                circle_ds["segment_id"] = self.segment_id[i][j]
+    for i in range(len(flight_date)):
+        for j in range(len(circle_times[i])):
+            if len(sonde_ids[i]) != 0:
+                circle_ds = gridded.sel(sonde_id=sonde_ids[i][j])
+                circle_ds["segment_id"] = segment_id[i][j]
                 circle_ds = circle_ds.pad(
                     sonde_id=(0, 13 - int(len(circle_ds.sonde_id))), mode="constant"
                 )
@@ -412,9 +414,60 @@ def gridded_to_circles(
                     np.arange(0, 13, 1, dtype="int"),
                 )
                 circle_ds = circle_ds.swap_dims({"sonde_id": "sounding"})
-                circles.append(circle_ds)
+                circles[segment_id] = circle_ds
 
     return circles
+
+
+def iterate_Circle_method_over_dict_of_Circle_objects(
+    obj: dict, functions: list, config: configparser.ConfigParser
+) -> dict:
+    """
+    Iterates over a dictionary of Circle objects and applies a list of methods to each Circle.
+
+    For each Circle object in the dictionary, this function
+    applies each method listed in the 'functions' key of the substep dictionary.
+    If the method returns a value, it stores the value in a new dictionary.
+    If the method returns None, it does not store the value in the new dictionary.
+
+    The arguments for each method are determined by the `get_args_for_function` function,
+    which uses the nondefaults dictionary and the config object.
+
+    Parameters
+    ----------
+    obj : dict
+        A dictionary of Circle objects.
+    functions : list
+        a list of method names.
+    nondefaults : dict
+        A dictionary mapping function qualified names to dictionaries of arguments.
+    config : configparser.ConfigParser
+        A ConfigParser object containing configuration settings.
+
+    Returns
+    -------
+    dict
+        A dictionary of Circle objects with the results of the methods applied to them (keys where results are None are not included).
+    """
+    my_dict = obj
+
+    for function_name in functions:
+        new_dict = {}
+        for key, value in my_dict.items():
+            function = getattr(Circle, function_name)
+            result = function(value, **get_args_for_function(config, function))
+            if result is not None:
+                new_dict[key] = result
+
+            my_dict = new_dict
+
+    return my_dict
+
+
+def circles_to_gridded(circles: dict, config: configparser.ConfigParser):
+    gridded = Circle_Gridded(circles)
+    gridded.concat_circles()
+    return gridded
 
 
 def run_substep(
@@ -578,19 +631,26 @@ pipeline = {
         "output": "gridded",
         "comment": "This step creates the L3 dataset after adding additional products.",
     },
-    # "create_patterns": {
-    #     "intake": "gridded",
-    #     "apply": gridded_to_pattern,
-    #     "output": "pattern",
-    #     "comment": "This step creates a dataset with the pattern-wide variables by creating the pattern with the flight-phase segmentation file.",
-    # },
-    # "create_L4": {
-    #     "intake": "pattern",
-    #     "apply": iterate_method_over_dataset,
-    #     "functions": [],
-    #     "output": "pattern",
-    #     "comment": "This step creates the L4 dataset after adding additional products and saves the L4 dataset.",
-    # },
+    "create_circles": {
+        "intake": "gridded",
+        "apply": create_and_populate_circles_object,
+        "output": "circles",
+        "comment": "This step creates a dictionary of patterns by creating the pattern with the flight-phase segmentation file.",
+    },
+    "process_L4": {
+        "intake": "circles",
+        "apply": iterate_Circle_method_over_dict_of_Circle_objects,
+        "functions": ["get_l4_dir", "get_l4_filename", "write_l4"],
+        "output": "circles",
+        "comment": "This step creates the L4 dataset after adding additional products and saves the L4 dataset.",
+    },
+    "create_L4": {
+        "intake": "circles",
+        "apply": concatenate_circles,
+        "functions": ["get_l4_dir", "get_l4_filename", "write_l4"],
+        "output": "all_circles",
+        "comment": "This step concatenates the individual circle datasets to create the L4 dataset.",
+    },
     # "quicklooks": {
     #     "intake": ["sondes", "gridded", "pattern"],
     #     "apply": [
