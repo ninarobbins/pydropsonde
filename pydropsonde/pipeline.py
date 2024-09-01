@@ -1,6 +1,8 @@
 from .helper.paths import Platform, Flight
 from .helper.__init__ import path_to_flight_ids, path_to_l0_files
 from .processor import Sonde, Gridded
+
+from .circle_processor import Circle, Circle_Gridded
 import configparser
 import inspect
 from tqdm import tqdm
@@ -313,7 +315,84 @@ def gridded_to_pattern(
     """
     The flight-phase segmentation file must be provided via the config file.
     """
-    pass
+
+    circles = {}
+
+    (
+        sonde_ids,
+        circle_times,
+        flight_date,
+        platform_name,
+        segment_id,
+    ) = get_circle_times_from_yaml(config)
+
+    for i in range(len(flight_date)):
+        for j in range(len(circle_times[i])):
+            if len(sonde_ids[i]) != 0:
+                circle_ds = gridded.sel(sonde_id=sonde_ids[i][j])
+                circle_ds["segment_id"] = segment_id[i][j]
+                circle_ds = circle_ds.pad(
+                    sonde_id=(0, 13 - int(len(circle_ds.sonde_id))), mode="constant"
+                )
+                circle_ds["sounding"] = (
+                    ["sonde_id"],
+                    np.arange(0, 13, 1, dtype="int"),
+                )
+                circle_ds = circle_ds.swap_dims({"sonde_id": "sounding"})
+                circles[segment_id] = circle_ds
+
+    return circles
+
+
+def iterate_Circle_method_over_dict_of_Circle_objects(
+    obj: dict, functions: list, config: configparser.ConfigParser
+) -> dict:
+    """
+    Iterates over a dictionary of Circle objects and applies a list of methods to each Circle.
+
+    For each Circle object in the dictionary, this function
+    applies each method listed in the 'functions' key of the substep dictionary.
+    If the method returns a value, it stores the value in a new dictionary.
+    If the method returns None, it does not store the value in the new dictionary.
+
+    The arguments for each method are determined by the `get_args_for_function` function,
+    which uses the nondefaults dictionary and the config object.
+
+    Parameters
+    ----------
+    obj : dict
+        A dictionary of Circle objects.
+    functions : list
+        a list of method names.
+    nondefaults : dict
+        A dictionary mapping function qualified names to dictionaries of arguments.
+    config : configparser.ConfigParser
+        A ConfigParser object containing configuration settings.
+
+    Returns
+    -------
+    dict
+        A dictionary of Circle objects with the results of the methods applied to them (keys where results are None are not included).
+    """
+    my_dict = obj
+
+    for function_name in functions:
+        new_dict = {}
+        for key, value in my_dict.items():
+            function = getattr(Circle, function_name)
+            result = function(value, **get_args_for_function(config, function))
+            if result is not None:
+                new_dict[key] = result
+
+            my_dict = new_dict
+
+    return my_dict
+
+
+def circles_to_gridded(circles: dict, config: configparser.ConfigParser):
+    gridded = Circle_Gridded(circles)
+    gridded.concatenate_circles()
+    return gridded
 
 
 def run_substep(
@@ -474,19 +553,25 @@ pipeline = {
         "output": "gridded",
         "comment": "This step creates the L3 dataset after adding additional products.",
     },
-    # "create_patterns": {
-    #     "intake": "gridded",
-    #     "apply": gridded_to_pattern,
-    #     "output": "pattern",
-    #     "comment": "This step creates a dataset with the pattern-wide variables by creating the pattern with the flight-phase segmentation file.",
-    # },
-    # "create_L4": {
-    #     "intake": "pattern",
-    #     "apply": iterate_method_over_dataset,
-    #     "functions": [],
-    #     "output": "pattern",
-    #     "comment": "This step creates the L4 dataset after adding additional products and saves the L4 dataset.",
-    # },
+    "create_circles": {
+        "intake": "gridded",
+        "apply": create_and_populate_circles_object,
+        "output": "circles",
+        "comment": "This step creates a dictionary of patterns by creating the pattern with the flight-phase segmentation file.",
+    },
+    "process_L4": {
+        "intake": "circles",
+        "apply": iterate_Circle_method_over_dict_of_Circle_objects,
+        "functions": [],
+        "output": "circles",
+        "comment": "This step creates the L4 dataset after adding additional products.",
+    },
+    "create_L4": {
+        "intake": "circles",
+        "apply": circles_to_gridded,
+        "output": "all_circles",
+        "comment": "This step concatenates the individual circle datasets to create the L4 dataset.",
+    },
     # "quicklooks": {
     #     "intake": ["sondes", "gridded", "pattern"],
     #     "apply": [
