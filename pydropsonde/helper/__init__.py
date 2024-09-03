@@ -489,7 +489,7 @@ def calc_theta_v(ds):
             ds.ta.dims,
             theta_v.magnitude,
             dict(
-                # standard_name="", to be added when official
+                standard_name="",
                 long_name="virtual potential temperature",
                 units=str(theta_v.units),
             ),
