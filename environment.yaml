@@ -18,6 +18,7 @@ dependencies:
   - pytest
   - sphinx
   - sphinx-autobuild
+  - circle-fit
   - xarray
   - pip
   - pip:
