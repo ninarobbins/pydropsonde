@@ -5,20 +5,12 @@ from typing import Any, Optional, List
 import os
 import subprocess
 import warnings
-import yaml
-import glob
 
 import numpy as np
 import xarray as xr
 
 import pydropsonde.helper as hh
 from ._version import __version__
-
-from sklearn import linear_model
-import metpy.calc as mpcalc
-from metpy.units import units
-from tqdm import tqdm
-import circle_fit as cf
 
 
 _no_default = object()
@@ -65,7 +57,7 @@ class Sonde:
             The flight ID of the flight during which the sonde was launched
         """
 
-        if not flight_template is None:
+        if flight_template is not None:
             flight_id = flight_template.format(flight_id=flight_id)
 
         object.__setattr__(self, "flight_id", flight_id)
@@ -1201,7 +1193,7 @@ class Gridded:
     def get_l3_dir(self, l3_dir: str = None):
         if l3_dir:
             self.l3_dir = l3_dir
-        elif not self.sondes is None:
+        elif self.sondes is not None:
             self.l3_dir = (
                 list(self.sondes.values())[0]
                 .l2_dir.replace("Level_2", "Level_3")
@@ -1238,7 +1230,7 @@ class Gridded:
     def get_l4_dir(self, l4_dir: str = None):
         if l4_dir:
             self.l4_dir = l4_dir
-        elif not self.sondes is None:
+        elif self.sondes is not None:
             self.l4_dir = (
                 list(self.sondes.values())[0]
                 .l3_dir.replace("Level_3", "Level_4")

@@ -8,6 +8,9 @@ from tqdm import tqdm
 import os
 import xarray as xr
 import glob
+import numpy as np
+from datetime import date
+import yaml
 
 
 def get_mandatory_args(function):
@@ -465,7 +468,7 @@ def iterate_Circle_method_over_dict_of_Circle_objects(
 
 
 def circles_to_gridded(circles: dict, config: configparser.ConfigParser):
-    gridded = Circle_Gridded(circles)
+    gridded = Gridded(sondes=None, circles=circles)
     gridded.concat_circles()
     return gridded
 
