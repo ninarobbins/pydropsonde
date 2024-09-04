@@ -1174,6 +1174,7 @@ class Sonde:
 @dataclass(order=True)
 class Gridded:
     sondes: dict
+    circles: dict
 
     def concat_sondes(self):
         """
@@ -1186,6 +1187,15 @@ class Gridded:
             dict(iwv=("sonde_id", combined.iwv.mean("alt").values, combined.iwv.attrs))
         )
         self._interim_l3_ds = combined
+        return self
+
+    def concat_circles(self):
+        """
+        function to concatenate all circles using the combination of all measurement times and launch times
+        """
+        list_of_circle_ds = [circle for circle in self.circles.values()]
+        combined = xr.combine_by_coords(list_of_circle_ds)
+        self._interim_l4_ds = combined
         return self
 
     def get_l3_dir(self, l3_dir: str = None):
@@ -1222,5 +1232,49 @@ class Gridded:
             os.makedirs(l3_dir)
 
         self._interim_l3_ds.to_netcdf(os.path.join(l3_dir, self.l3_filename))
+
+        return self
+
+    def get_l4_dir(self, l4_dir: str = None):
+        if l4_dir:
+            self.l4_dir = l4_dir
+        elif not self.sondes is None:
+            self.l4_dir = (
+                list(self.sondes.values())[0]
+                .l3_dir.replace("Level_3", "Level_4")
+                .replace(list(self.sondes.values())[0].flight_id, "")
+                .replace(list(self.sondes.values())[0].platform_id, "")
+            )
+        else:
+            raise ValueError("No sondes and no l3 directory given, cannot continue ")
+        return self
+
+    def get_l4_filename(
+        self, l4_filename_template: str = None, l4_filename: str = None
+    ):
+        if l4_filename is None:
+            if l4_filename_template is None:
+                l4_filename = "some_default_template_{platform}_{flight_id}.nc".format(
+                    platform=self.platform_id,
+                    flight_id=self.flight_id,
+                )
+            else:
+                l4_filename = l4_filename_template.format(
+                    platform=self.platform_id,
+                    flight_id=self.flight_id,
+                )
+
+        self.l4_filename = l4_filename
+
+        return self
+
+    def write_l4(self, l4_dir: str = None):
+        if l4_dir is None:
+            l4_dir = self.l4_dir
+
+        if not os.path.exists(l4_dir):
+            os.makedirs(l4_dir)
+
+        self._interim_l4_ds.to_netcdf(os.path.join(l4_dir, self.l4_filename))
 
         return self

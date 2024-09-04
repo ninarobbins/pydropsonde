@@ -1,7 +1,7 @@
 from .helper.paths import Platform, Flight
 from .helper.__init__ import path_to_flight_ids, path_to_l0_files
 from .processor import Sonde, Gridded
-from .circle_processor import Circle, Circle_Gridded
+from .circle_processor import Circle
 import configparser
 import inspect
 from tqdm import tqdm
@@ -466,7 +466,7 @@ def iterate_Circle_method_over_dict_of_Circle_objects(
 
 def circles_to_gridded(circles: dict, config: configparser.ConfigParser):
     gridded = Circle_Gridded(circles)
-    gridded.concatenate_circles()
+    gridded.concat_circles()
     return gridded
 
 
