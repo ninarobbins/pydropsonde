@@ -1230,15 +1230,15 @@ class Gridded:
     def get_l4_dir(self, l4_dir: str = None):
         if l4_dir:
             self.l4_dir = l4_dir
-        elif self.sondes is not None:
+        elif self.circles is not None:
             self.l4_dir = (
-                list(self.sondes.values())[0]
+                list(self.circles.values())[0]
                 .l3_dir.replace("Level_3", "Level_4")
-                .replace(list(self.sondes.values())[0].flight_id, "")
-                .replace(list(self.sondes.values())[0].platform_id, "")
+                .replace(list(self.circles.values())[0].flight_id, "")
+                .replace(list(self.circles.values())[0].platform_id, "")
             )
         else:
-            raise ValueError("No sondes and no l3 directory given, cannot continue ")
+            raise ValueError("No sondes and no l4 directory given, cannot continue ")
         return self
 
     def get_l4_filename(
