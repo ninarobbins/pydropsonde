@@ -115,7 +115,6 @@ class Sonde:
         object.__setattr__(self, "afile", path_to_afile)
         return self
 
-
     def add_level_dir(self, l0_dir: str = None, l1_dir: str = None, l2_dir: str = None):
         if l0_dir is None:
             if not hasattr(self, "afile"):
@@ -1214,7 +1213,6 @@ class Gridded:
         self.l3_filename = l3_filename
 
         return self
-
 
     def write_l3(self, l3_dir: str = None):
         if l3_dir is None:
