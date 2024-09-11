@@ -19,6 +19,7 @@ dependencies:
   - sphinx
   - sphinx-autobuild
   - xarray
+  - rttools
   - typhon
   - pip
   - pip:
