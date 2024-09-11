@@ -4,7 +4,6 @@ from .processor import Sonde, Gridded
 from .circle_processor import Circle
 import configparser
 import inspect
-from tqdm import tqdm
 import os
 import xarray as xr
 import glob
@@ -278,38 +277,17 @@ def iterate_Sonde_method_over_dict_of_Sondes_objects(
         A dictionary of Sonde objects with the results of the methods applied to them (keys where results are None are not included).
     """
     my_dict = obj
+
     for function_name in functions:
         new_dict = {}
-<<<<<<< HEAD
-        for key, value in tqdm(my_dict.items()):
-=======
         for key, value in my_dict.items():
-<<<<<<< HEAD
->>>>>>> 1680357 (remove flight_id and platform from gridded)
-            if value.cont:
-                function = getattr(Sonde, function_name)
-                result = function(value, **get_args_for_function(config, function))
-                if result is not None:
-                    new_dict[key] = result
-            else:
-                new_dict[key] = value
-<<<<<<< HEAD
-            my_dict = new_dict.copy()
-=======
-                print(
-                    f"I skipped {function_name} because the interim l3 is already there for sonde {value.serial_id}."
-                )
-        my_dict = new_dict
-=======
             function = getattr(Sonde, function_name)
             result = function(value, **get_args_for_function(config, function))
             if result is not None:
                 new_dict[key] = result
 
             my_dict = new_dict
->>>>>>> 24e6dcc (fix gridded call with dummy)
 
->>>>>>> 1680357 (remove flight_id and platform from gridded)
     return my_dict
 
 
@@ -600,23 +578,13 @@ pipeline = {
         "intake": "sondes",
         "apply": iterate_Sonde_method_over_dict_of_Sondes_objects,
         "functions": [
-            "check_interim_l3",
             "get_l2_filename",
             "add_l2_ds",
             "create_prep_l3",
             "add_q_and_theta_to_l2_ds",
-            "add_iwv",
             "remove_non_mono_incr_alt",
             "interpolate_alt",
-<<<<<<< HEAD
-            "recalc_rh_and_ta",
-            "add_wind",
             "add_attributes_as_var",
-            "make_prep_interim",
-            "save_interim_l3",
-=======
-            "add_attributes_as_var",
->>>>>>> b2740f8 (rename prepare l3 to add_attribute)
         ],
         "output": "sondes",
         "comment": "This step reads from the saved L2 files and prepares individual sonde datasets before they can be concatenated to create L3.",
