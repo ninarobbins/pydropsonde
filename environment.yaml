@@ -19,12 +19,11 @@ dependencies:
   - sphinx
   - sphinx-autobuild
   - xarray
-  - rttools
-  - typhon
   - pip
   - pip:
     - tqdm
     - typhon
+    - rttools
     - sphinx-autodoc2
     - sphinx-book-theme
     - sphinx-last-updated-by-git
