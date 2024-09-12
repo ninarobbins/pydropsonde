@@ -1056,11 +1056,22 @@ class Sonde:
 
         return self
 
+    def add_thetas(self):
+        ds = self._prep_l3_ds
+        ds = hh.calc_theta_e(ds)
+        ds = hh.calc_T_v(ds)
+        ds = hh.calc_theta_v(ds)
+        object.__setattr__(self, "_prep_l3_ds", ds)
+
+        return self
+
     def add_wind(self):
 
         ds = self._prep_l3_ds
         ds = hh.calc_wind_dir_and_speed(ds)
         object.__setattr__(self, "_prep_l3_ds", ds)
+
+        print(ds.w_dir)
         return self
 
     def remove_non_mono_incr_alt(self, alt_var="alt"):
@@ -1096,7 +1107,7 @@ class Sonde:
         method: str = "bin",
     ):
         """
-        Interpolate sonde data along comon altitude grid to prepare concatenation
+        Ineterpolate sonde data along comon altitude grid to prepare concatenation
         """
         interpolation_grid = np.arange(interp_start, interp_stop, interp_step)
 
@@ -1270,6 +1281,8 @@ class Gridded:
 
         if not os.path.exists(l3_dir):
             os.makedirs(l3_dir)
+
+          
         encoding = hh.get_encoding(self._interim_l3_ds)
         (
             self._interim_l3_ds.to_netcdf(
