@@ -1239,20 +1239,11 @@ class Gridded:
             raise ValueError("No sondes and no l4 directory given, cannot continue ")
         return self
 
-    def get_l4_filename(
-        self, l4_filename_template: str = None, l4_filename: str = None
-    ):
+    def get_l4_filename(self, l4_filename: str = None):
         if l4_filename is None:
-            if l4_filename_template is None:
-                l4_filename = "some_default_template_{platform}_{flight_id}.nc".format(
-                    platform=self.platform_id,
-                    flight_id=self.flight_id,
-                )
-            else:
-                l4_filename = l4_filename_template.format(
-                    platform=self.platform_id,
-                    flight_id=self.flight_id,
-                )
+            l4_filename = hh.l4_filename
+        else:
+            l4_filename = l4_filename
 
         self.l4_filename = l4_filename
 
