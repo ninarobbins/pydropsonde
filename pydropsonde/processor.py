@@ -1196,7 +1196,7 @@ class Sonde:
 @dataclass(order=True)
 class Gridded:
     sondes: dict
-    circles: dict
+    circles: dict = field(default_factory=dict)  # default empty dictionary for circles
 
     def concat_sondes(self):
         """
