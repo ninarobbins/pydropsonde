@@ -1161,6 +1161,37 @@ class Sonde:
         object.__setattr__(self, "_prep_l3_ds", interp_ds)
         return self
 
+    def add_attributes_as_var(self):
+        """
+        Prepares l2 datasets to be concatenated to gridded.
+        adds all attributes as variables to avoid conflicts when concatenating because attributes are different
+        (and not lose information)
+        """
+        _prep_l3_ds = self._prep_l3_ds
+        for attr, value in self._prep_l3_ds.attrs.items():
+            _prep_l3_ds[attr] = value
+
+        _prep_l3_ds.attrs.clear()
+        object.__setattr__(self, "_prep_l3_ds", _prep_l3_ds)
+        return self
+
+    def make_prep_interim(self):
+        object.__setattr__(self, "_interim_l3_ds", self._prep_l3_ds)
+        return self
+
+    def save_interim_l3(self, interim_l3_path: str = None, interim_l3_name: str = None):
+        if interim_l3_path is None:
+            interim_l3_path = self.l2_dir.replace("Level_2", "Level_3_interim").replace(
+                self.flight_id, ""
+            )
+        if interim_l3_name is None:
+            interim_l3_name = "interim_l3_{sonde_id}_{version}.nc".format(
+                sonde_id=self.serial_id, version=__version__
+            )
+        os.makedirs(interim_l3_path, exist_ok=True)
+        self._interim_l3_ds.to_netcdf(os.path.join(interim_l3_path, interim_l3_name))
+        return self
+
 
 @dataclass(order=True)
 class Gridded:
