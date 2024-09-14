@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 import numpy as np
 import circle_fit as cf
+import xarray as xr
+import tqdm
 
 _no_default = object()
 
@@ -81,5 +83,90 @@ class Circle:
         object.__setattr__(self, "circle_diameter", circle_diameter)
         object.__setattr__(self, "dx", (["sounding", "alt"], delta_x))
         object.__setattr__(self, "dy", (["sounding", "alt"], delta_y))
+
+        return self
+
+    def fit2d(self, var: str = None):
+        """
+        estimate a 2D linear model to calculate u-values from x-y coordinates
+
+        :param x: x coordinates of data points. shape: (...,M)
+        :param y: y coordinates of data points. shape: (...,M)
+        :param u: data values. shape: (...,M)
+
+        all points along the M dimension are expected to belong to the same model
+        all other dimensions are for different models
+
+        :returns: intercept, dudx, dudy. all shapes: (...)
+        """
+        u = xr.open_dataset(self.circle_ds[var])
+        u_ = u
+        # to fix nans, do a copy
+        u = np.array(u, copy=True)
+        # a does not need to be copied as this creates a copy already
+        a = np.stack([np.ones_like(self.dx), self.dx, self.dy], axis=-1)
+
+        # for handling missing values, both u and a are set to 0, that way
+        # these items don't influence the fit
+        invalid = np.isnan(u) | np.isnan(self.dx) | np.isnan(self.dy)
+        under_constraint = np.sum(~invalid, axis=-1) < 6
+        u[invalid] = 0
+        a[invalid] = 0
+
+        a_inv = np.linalg.pinv(a)
+
+        intercept, dudx, dudy = np.einsum("...rm,...m->r...", a_inv, u)
+
+        intercept[under_constraint] = np.nan
+        dudx[under_constraint] = np.nan
+        dudy[under_constraint] = np.nan
+
+        return intercept, dudx, dudy, u_
+
+    def fit2d_xr(
+        self,
+        var: str = None,
+        input_core_dims=["sounding"],
+        output_core_dims=["sounding"],
+    ):
+        # input and output dims must be a list
+
+        return xr.apply_ufunc(
+            self.fit2d,
+            self.dx,
+            self.dy,
+            var,
+            input_core_dims=[input_core_dims, input_core_dims, input_core_dims],
+            output_core_dims=[(), (), (), output_core_dims],
+        )
+
+    def fit_multiple_vars(self, variables: list):
+        """
+        Apply the 2D linear fit for multiple variables (e.g., u, v, q, ta, p) for this circle.
+
+        Parameters
+        ----------
+        variables : list
+            A list of variable names (e.g., ["u", "v", "q", "ta", "p"]) to apply fit2d_xr to.
+
+        Returns
+        -------
+        dict
+            A dictionary where keys are the variable names and values are the results (intercept, dudx, dudy, sounding).
+        """
+
+        # Loop over each variable and apply the fit2d_xr method
+        for par in tqdm(variables):
+            mean_var_name = par
+            var_dx_name = "d" + par + "dx"
+            var_dy_name = "d" + par + "dy"
+
+            # Apply the fit2d_xr method for each variable (assuming fit2d_xr is defined in the class)
+            intercept, dudx, dudy, sounding = self.fit2d_xr(par)
+
+            object.__setattr__(self, mean_var_name, intercept)
+            object.__setattr__(self, var_dx_name, dudx)
+            object.__setattr__(self, var_dy_name, dudy)
+            object.__setattr__(self, par + "_sounding", sounding)
 
         return self
