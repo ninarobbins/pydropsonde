@@ -562,7 +562,7 @@ pipeline = {
     "process_L4": {
         "intake": "circles",
         "apply": iterate_Circle_method_over_dict_of_Circle_objects,
-        "functions": [],
+        "functions": ["get_xy_coords_for_circles"],
         "output": "circles",
         "comment": "This step creates the L4 dataset after adding additional products.",
     },
