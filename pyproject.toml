@@ -34,7 +34,6 @@ numpy = "*"
 numba = ">=0.50"
 numcodecs = "*"
 pyproj = "*"
-typhon = "*"
 pandas = "*"
 scipy = "*"
 seaborn = "*"
@@ -59,7 +58,7 @@ persistent-substitution = true
 initial-content ="""
   TYPE_CHECKING = False
   if TYPE_CHECKING:
-      from typing import Tuple, Union
+      from typing Tuple, Union
       VERSION_TUPLE = Tuple[Union[int, str], ...]
   else:
       VERSION_TUPLE = object
