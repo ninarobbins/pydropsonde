@@ -22,7 +22,6 @@ packages = [{include = "pydropsonde"}]
 [tool.poetry.dependencies]
 python = ">=3.10"
 PyYAML = "*"
-
 bottleneck = "*"
 circle-fit = "*"
 cmocean = "*"
@@ -35,6 +34,7 @@ numpy = "*"
 numba = ">=0.50"
 numcodecs = "*"
 pyproj = "*"
+typhon = "*"
 pandas = "*"
 scipy = "*"
 seaborn = "*"
