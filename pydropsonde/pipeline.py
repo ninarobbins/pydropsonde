@@ -293,7 +293,7 @@ def sondes_to_gridded(sondes: dict, config: configparser.ConfigParser):
     return gridded
 
 
-def iterate_method_over_dataset(
+def apply_method_to_dataset(
     obj: Gridded,
     functions: list,
     config: configparser.ConfigParser,
@@ -469,11 +469,24 @@ pipeline = {
     },
     "create_L3": {
         "intake": "gridded",
-        "apply": iterate_method_over_dataset,
+        "apply": apply_method_to_dataset,
         "functions": ["get_l3_dir", "get_l3_filename", "write_l3"],
         "output": "gridded",
         "comment": "This step creates the L3 dataset after adding additional products.",
     },
+    "get_circles": {
+        "intake": "gridded",
+        "apply": apply_method_to_dataset,
+        "functions": ["add_l3_ds", "get_simple_circle_times_from_yaml"],
+        "output": "gridded",
+        "comment": "get circle times and add to gridded",
+    },
+    # "create_circles": {
+    #    "intake": "circles",
+    #    "apply": create_and_populate_circles_object,
+    #    "output": "circles",
+    #    "comment": "This step creates a dictionary of patterns by creating the pattern with the flight-phase segmentation file.",
+    # },
     # "create_patterns": {
     #     "intake": "gridded",
     #     "apply": gridded_to_pattern,

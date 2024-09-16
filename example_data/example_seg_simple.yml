@@ -1,0 +1,18 @@
+
+flight_id: 20200122
+segments:
+- kinds:
+  - circle
+  segment_id: example_c1
+  start: 2020-01-22 15:20:00
+  end: 2020-01-22 15:25:00
+- kinds:
+  - circle
+  segment_id: example_c2
+  start: 2020-01-22 15:15:00
+  end: 2020-01-22 15:25:00
+- kinds:
+  - circle
+  segment_id: example_c3
+  start: 2020-01-22 10:25:00
+  end: 2020-01-22 10:30:00

@@ -1,13 +1,15 @@
 import ast
 from dataclasses import dataclass, field, KW_ONLY
-from datetime import datetime
+
+from datetime import datetime, date
 from typing import Any, Optional, List
 import os
 import subprocess
 import warnings
-
+import yaml
 import numpy as np
 import xarray as xr
+import glob
 
 from pydropsonde.helper import rawreader as rr
 import pydropsonde.helper as hh
@@ -1277,4 +1279,42 @@ class Gridded:
             )
         )
 
+        return self
+
+    def add_l3_ds(self, l3_dir: str = None):
+        if l3_dir is None:
+            self.l3_ds = self._interim_l3_ds.copy()
+        else:
+            self.l3_ds = xr.open_dataset(l3_dir)
+        return self
+
+    def get_simple_circle_times_from_yaml(self, yaml_file: str = None):
+        with open(yaml_file) as source:
+            flightinfo = yaml.load(source, Loader=yaml.SafeLoader)
+
+        circle_times = []
+        sonde_ids = []
+        segment_ids = []
+        for c in flightinfo["segments"]:
+            circle_times.append([(np.datetime64(c["start"]), np.datetime64(c["end"]))])
+            segment_ids.append(c["segment_id"])
+
+            try:
+                ds_c = self.l3_ds.where(
+                    self.l3_ds["launch_time"] > np.datetime64(c["start"]),
+                    drop=True,
+                ).where(
+                    self.l3_ds["launch_time"] < np.datetime64(c["end"]),
+                    drop=True,
+                )
+            except ValueError:
+                c_id = c["segment_id"]
+                print(f"No sondes for circle {c_id}. It is omitted")
+                sonde_ids.append([])
+            else:
+                print(ds_c.sonde_id.values)
+                sonde_ids.append(list(ds_c.sonde_id.values))
+        self.circle_times = circle_times
+        self.sonde_ids = sonde_ids
+        self.segment_ids = segment_ids
         return self
