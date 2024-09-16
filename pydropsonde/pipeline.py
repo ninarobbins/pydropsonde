@@ -1,6 +1,7 @@
 from .helper.paths import Platform, Flight
 from .helper.__init__ import path_to_flight_ids, path_to_l0_files
 from .processor import Sonde, Gridded
+from .circles import Circle
 import configparser
 import inspect
 from tqdm import tqdm
@@ -242,6 +243,31 @@ def create_and_populate_flight_object(
     return output["platforms"], output["sondes"]
 
 
+def create_and_populate_circle_object(
+    gridded: Gridded, config: configparser.ConfigParser
+) -> dict[Circle]:
+    """
+    create circle objects for further analysis
+    """
+
+    circles = {}
+
+    for flight_id, platform_id, segment_id, sonde_ids in zip(
+        gridded.flight_ids, gridded.platform_ids, gridded.segment_ids, gridded.sonde_ids
+    ):
+        circle_ds = gridded.l3_ds.sel(sonde_id=sonde_ids)
+        circle = Circle(
+            circle_ds=circle_ds,
+            flight_id=flight_id,
+            platform_id=platform_id,
+            segment_id=segment_id,
+        )
+        circle_id = f"{flight_id}_{segment_id}"
+        circles[circle_id] = circle
+
+    return circles
+
+
 def iterate_Sonde_method_over_dict_of_Sondes_objects(
     obj: dict, functions: list, config: configparser.ConfigParser
 ) -> dict:
@@ -481,12 +507,12 @@ pipeline = {
         "output": "gridded",
         "comment": "get circle times and add to gridded",
     },
-    # "create_circles": {
-    #    "intake": "circles",
-    #    "apply": create_and_populate_circles_object,
-    #    "output": "circles",
-    #    "comment": "This step creates a dictionary of patterns by creating the pattern with the flight-phase segmentation file.",
-    # },
+    "create_circles": {
+        "intake": "gridded",
+        "apply": create_and_populate_circle_object,
+        "output": "circles",
+        "comment": "This step creates a dictionary of patterns by creating the pattern with the flight-phase segmentation file.",
+    },
     # "create_patterns": {
     #     "intake": "gridded",
     #     "apply": gridded_to_pattern,
