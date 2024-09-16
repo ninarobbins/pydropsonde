@@ -558,28 +558,11 @@ pipeline = {
         "output": "circles",
         "comment": "This step creates a dictionary of patterns by creating the pattern with the flight-phase segmentation file.",
     },
-    # "create_patterns": {
-    #     "intake": "gridded",
-    #     "apply": gridded_to_pattern,
-    #     "output": "pattern",
-    #     "comment": "This step creates a dataset with the pattern-wide variables by creating the pattern with the flight-phase segmentation file.",
-    # },
-    # "create_L4": {
-    #     "intake": "pattern",
-    #     "apply": iterate_method_over_dataset,
-    #     "functions": [],
-    #     "output": "pattern",
-    #     "comment": "This step creates the L4 dataset after adding additional products and saves the L4 dataset.",
-    # },
-    # "quicklooks": {
-    #     "intake": ["sondes", "gridded", "pattern"],
-    #     "apply": [
-    #         iterate_Sonde_method_over_dict_of_Sondes_objects,
-    #         iterate_method_over_dataset,
-    #         iterate_method_over_dataset,
-    #     ],
-    #     "functions": [[], [], []],
-    #     "output": "plots",
-    #     "comment": "This step creates quicklooks from the L3 & L4 dataset.",
-    # },
+    "calculate_circle_data": {
+        "intake": "circles",
+        "apply": iterate_Circle_method_over_dict_of_Circle_objects,
+        "functions": ["dummy_circle_function"],
+        "output": "circles",
+        "comment": "calculate circle products",
+    },
 }
