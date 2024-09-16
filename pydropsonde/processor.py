@@ -1295,9 +1295,13 @@ class Gridded:
         circle_times = []
         sonde_ids = []
         segment_ids = []
+        platform_ids = []
+        flight_ids = []
         for c in flightinfo["segments"]:
             circle_times.append([(np.datetime64(c["start"]), np.datetime64(c["end"]))])
             segment_ids.append(c["segment_id"])
+            platform_ids.append(flightinfo["platform"])
+            flight_ids.append(flightinfo["flight_id"])
 
             try:
                 ds_c = self.l3_ds.where(
@@ -1317,6 +1321,9 @@ class Gridded:
         self.circle_times = circle_times
         self.sonde_ids = sonde_ids
         self.segment_ids = segment_ids
+        self.platform_ids = platform_ids
+        self.flight_ids = flight_ids
+
         return self
 
     def get_circle_info_from_yaml(self, yaml_dir: str = None):
@@ -1324,13 +1331,16 @@ class Gridded:
 
         circle_times = []
         sonde_ids = []
-        flight_dates = []
+        flight_ids = []
+        platform_ids = []
+        segment_ids = []
         segment_ids = []
 
         for i in allyamlfiles:
             with open(i) as source:
                 flightinfo = yaml.load(source, Loader=yaml.SafeLoader)
-
+            platform_ids.append(flightinfo.platform)
+            flight_ids.append(flightinfo["flight_id"])
             circle_times.append(
                 [
                     (c["start"], c["end"])
@@ -1358,13 +1368,10 @@ class Gridded:
                 ]
             )
 
-        flight_dates.append(
-            np.datetime64(date.strftime(flightinfo["date"], "%Y-%m-%d"))
-        )
-
         self.circle_times = circle_times
         self.sonde_ids = sonde_ids
         self.segment_ids = segment_ids
-        self.flight_dates = flight_dates
+        self.platform_ids = platform_ids
+        self.flight_ids = flight_ids
 
         return self

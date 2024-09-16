@@ -1,5 +1,6 @@
 
 flight_id: 20200122
+platform: HALO
 segments:
 - kinds:
   - circle
