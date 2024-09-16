@@ -1318,3 +1318,53 @@ class Gridded:
         self.sonde_ids = sonde_ids
         self.segment_ids = segment_ids
         return self
+
+    def get_circle_info_from_yaml(self, yaml_dir: str = None):
+        allyamlfiles = sorted(glob.glob(yaml_dir + "*.yaml"))
+
+        circle_times = []
+        sonde_ids = []
+        flight_dates = []
+        segment_ids = []
+
+        for i in allyamlfiles:
+            with open(i) as source:
+                flightinfo = yaml.load(source, Loader=yaml.SafeLoader)
+
+            circle_times.append(
+                [
+                    (c["start"], c["end"])
+                    for c in flightinfo["segments"]
+                    if "circle" in c["kinds"]
+                    if len(c["dropsondes"]["GOOD"]) >= 6
+                ]
+            )
+
+            sonde_ids.append(
+                [
+                    c["dropsondes"]["GOOD"]
+                    for c in flightinfo["segments"]
+                    if "circle" in c["kinds"]
+                    if len(c["dropsondes"]["GOOD"]) >= 6
+                ]
+            )
+
+            segment_ids.append(
+                [
+                    (c["segment_id"])
+                    for c in flightinfo["segments"]
+                    if "circle" in c["kinds"]
+                    if len(c["dropsondes"]["GOOD"]) >= 6
+                ]
+            )
+
+        flight_dates.append(
+            np.datetime64(date.strftime(flightinfo["date"], "%Y-%m-%d"))
+        )
+
+        self.circle_times = circle_times
+        self.sonde_ids = sonde_ids
+        self.segment_ids = segment_ids
+        self.flight_dates = flight_dates
+
+        return self
