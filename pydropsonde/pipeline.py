@@ -313,6 +313,51 @@ def iterate_Sonde_method_over_dict_of_Sondes_objects(
     return my_dict
 
 
+def iterate_Circle_method_over_dict_of_Circle_objects(
+    obj: dict, functions: list, config: configparser.ConfigParser
+) -> dict:
+    """
+    Iterates over a dictionary of Circle objects and applies a list of methods to each Circle.
+
+    For each Circle object in the dictionary, this function
+    applies each method listed in the 'functions' key of the substep dictionary.
+    If the method returns a value, it stores the value in a new dictionary.
+    If the method returns None, it does not store the value in the new dictionary.
+
+    The arguments for each method are determined by the `get_args_for_function` function,
+    which uses the nondefaults dictionary and the config object.
+
+    Parameters
+    ----------
+    obj : dict
+        A dictionary of Circle objects.
+    functions : list
+        a list of method names.
+    nondefaults : dict
+        A dictionary mapping function qualified names to dictionaries of arguments.
+    config : configparser.ConfigParser
+        A ConfigParser object containing configuration settings.
+
+    Returns
+    -------
+    dict
+        A dictionary of Circle objects with the results of the methods applied to them (keys where results are None are not included).
+    """
+    my_dict = obj
+
+    for function_name in functions:
+        new_dict = {}
+        for key, value in my_dict.items():
+            function = getattr(Circle, function_name)
+            result = function(value, **get_args_for_function(config, function))
+            if result is not None:
+                new_dict[key] = result
+
+            my_dict = new_dict
+
+    return my_dict
+
+
 def sondes_to_gridded(sondes: dict, config: configparser.ConfigParser):
     gridded = Gridded(sondes)
     gridded.concat_sondes()
