@@ -33,7 +33,6 @@ def check_launch_detect_in_afile(a_file: "str") -> bool:
     """
 
     with open(a_file, "r") as f:
-
         module_logger.debug(f"Opened File: {a_file=}")
         lines = f.readlines()
 

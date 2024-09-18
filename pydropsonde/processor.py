@@ -9,7 +9,6 @@ import warnings
 import numpy as np
 import xarray as xr
 
-from pydropsonde.helper import rawreader as rr
 import pydropsonde.helper as hh
 from ._version import __version__
 
@@ -56,7 +55,7 @@ class Sonde:
         flight_id : str
             The flight ID of the flight during which the sonde was launched
         """
-        if not flight_template is None:
+        if flight_template is not None:
             flight_id = flight_template.format(flight_id=flight_id)
 
         object.__setattr__(self, "flight_id", flight_id)
@@ -87,7 +86,7 @@ class Sonde:
             object.__setattr__(self, "launch_alt", launch_alt)
             object.__setattr__(self, "launch_lat", launch_lat)
             object.__setattr__(self, "launch_lon", launch_lon)
-        except:
+        except (ValueError, TypeError):
             print(
                 "Check if the sonde detected a launch, otherwise launch coordinates cannot be set"
             )
@@ -247,7 +246,7 @@ class Sonde:
             If the `launch_detect` attribute does not exist.
         """
         if hasattr(self, "launch_detect"):
-            if self.launch_detect == False:
+            if not self.launch_detect:
                 print(
                     f"No launch detected for Sonde {self.serial_id}. I am not running QC checks for this Sonde."
                 )
@@ -1057,7 +1056,6 @@ class Sonde:
         return self
 
     def add_wind(self):
-
         ds = self._prep_l3_ds
         ds = hh.calc_wind_dir_and_speed(ds)
         object.__setattr__(self, "_prep_l3_ds", ds)
@@ -1243,7 +1241,7 @@ class Gridded:
     def get_l3_dir(self, l3_dir: str = None):
         if l3_dir:
             self.l3_dir = l3_dir
-        elif not self.sondes is None:
+        elif self.sondes is not None:
             self.l3_dir = (
                 list(self.sondes.values())[0]
                 .l2_dir.replace("Level_2", "Level_3")

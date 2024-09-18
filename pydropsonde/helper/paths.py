@@ -152,7 +152,6 @@ class Flight:
         Sondes = {}
 
         for a_file in afiles:
-
             sonde_id = rr.get_sonde_id(a_file)
             try:
                 launch_detect = rr.check_launch_detect_in_afile(a_file)

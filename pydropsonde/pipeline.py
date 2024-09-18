@@ -69,7 +69,7 @@ def get_mandatory_values_from_config(config, mandatory_args):
     {'arg1': 'value1', 'arg2': 'value2'}
     """
     if not config.has_section("MANDATORY"):
-        raise ValueError(f"MANDATORY section not found in config file")
+        raise ValueError("MANDATORY section not found in config file")
     else:
         mandatory_dict = {}
         for arg in mandatory_args:
@@ -181,7 +181,6 @@ def get_platforms(config):
                 )
         platform_objects = {}
         for platform, platform_directory_name in platforms.items():
-
             platform_objects[platform] = Platform(
                 data_directory=data_directory,
                 platform_id=platform,

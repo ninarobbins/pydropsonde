@@ -1,5 +1,4 @@
 import pydropsonde.helper as hh
-import pytest
 import numpy as np
 import xarray as xr
 

@@ -126,7 +126,6 @@ l3_filename = "Level_3.nc"
 
 
 def get_chunks(ds, var):
-
     chunks = {
         "sonde_id": min(256, ds.sonde_id.size),
         "alt": min(350, ds.alt.size),
@@ -136,7 +135,6 @@ def get_chunks(ds, var):
 
 
 def get_encoding(ds, exclude_vars=None):
-
     variables = [
         "u",
         "v",
