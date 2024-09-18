@@ -1,10 +1,8 @@
 import pytest
-import os
-import xarray as xr
 from pydropsonde.processor import Gridded
 
 sondes = None
-l3_default = f"Level_3.nc"
+l3_default = "Level_3.nc"
 
 
 @pytest.fixture

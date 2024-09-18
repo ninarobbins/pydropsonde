@@ -1,7 +1,7 @@
 import ast
 from dataclasses import dataclass, field, KW_ONLY
 
-from datetime import datetime, date
+from datetime import datetime
 from typing import Any, Optional, List
 import os
 import subprocess
@@ -11,7 +11,6 @@ import numpy as np
 import xarray as xr
 import glob
 
-from pydropsonde.helper import rawreader as rr
 import pydropsonde.helper as hh
 from ._version import __version__
 
@@ -58,7 +57,7 @@ class Sonde:
         flight_id : str
             The flight ID of the flight during which the sonde was launched
         """
-        if not flight_template is None:
+        if flight_template is not None:
             flight_id = flight_template.format(flight_id=flight_id)
 
         object.__setattr__(self, "flight_id", flight_id)
@@ -249,7 +248,7 @@ class Sonde:
             If the `launch_detect` attribute does not exist.
         """
         if hasattr(self, "launch_detect"):
-            if self.launch_detect == False:
+            if not self.launch_detect:
                 print(
                     f"No launch detected for Sonde {self.serial_id}. I am not running QC checks for this Sonde."
                 )
@@ -1245,7 +1244,7 @@ class Gridded:
     def get_l3_dir(self, l3_dir: str = None):
         if l3_dir:
             self.l3_dir = l3_dir
-        elif not self.sondes is None:
+        elif self.sondes is not None:
             self.l3_dir = (
                 list(self.sondes.values())[0]
                 .l2_dir.replace("Level_2", "Level_3")

@@ -1,5 +1,5 @@
 import logging
-from pathlib import Path
+from . import pipeline as pi
 
 # create pydropsonde logger
 logger = logging.getLogger("pydropsonde")
@@ -28,8 +28,6 @@ logger.addHandler(fh_info)
 logger.addHandler(fh_debug)
 logger.addHandler(ch)
 
-import configparser
-from . import pipeline as pi
 
 
 def main():
