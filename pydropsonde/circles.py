@@ -18,6 +18,10 @@ class Circle:
     segment_id: str
 
     def get_xy_coords_for_circles(self):
+        if self.circle_ds.lon.size == 0 or self.circle_ds.lat.size == 0:
+            print("Empty segment: 'lon' or 'lat' is empty.")
+            return None  # or some default value like [], np.array([]), etc.
+
         x_coor = (
             self.circle_ds.lon * 111.320 * np.cos(np.radians(self.circle_ds.lat)) * 1000
         )
