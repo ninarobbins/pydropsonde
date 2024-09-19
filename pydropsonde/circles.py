@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import numpy as np
 import circle_fit as cf
+import warnings
 
 _no_default = object()
 
@@ -44,10 +45,13 @@ class Circle:
                     ]
                 )
 
-        circle_y = np.nanmean(c_yc) / (110.54 * 1000)
-        circle_x = np.nanmean(c_xc) / (111.320 * np.cos(np.radians(circle_y)) * 1000)
-
-        circle_diameter = np.nanmean(c_r) * 2
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            circle_y = np.nanmean(c_yc) / (110.54 * 1000)
+            circle_x = np.nanmean(c_xc) / (
+                111.320 * np.cos(np.radians(circle_y)) * 1000
+            )
+            circle_diameter = np.nanmean(c_r) * 2
 
         xc = [None] * len(x_coor.T)
         yc = [None] * len(y_coor.T)
