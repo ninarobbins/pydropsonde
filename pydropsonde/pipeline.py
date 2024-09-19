@@ -574,7 +574,7 @@ pipeline = {
     "calculate_circle_data": {
         "intake": "circles",
         "apply": iterate_Circle_method_over_dict_of_Circle_objects,
-        "functions": ["dummy_circle_function"],
+        "functions": ["dummy_circle_function", "get_xy_coords_for_circles"],
         "output": "circles",
         "comment": "calculate circle products",
     },

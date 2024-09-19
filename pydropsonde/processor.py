@@ -1505,6 +1505,7 @@ class Gridded:
             else:
                 print(ds_c.sonde_id.values)
                 sonde_ids.append(list(ds_c.sonde_id.values))
+
         self.circle_times = circle_times
         self.sonde_ids = sonde_ids
         self.segment_ids = segment_ids
