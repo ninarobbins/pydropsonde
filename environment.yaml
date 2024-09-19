@@ -23,6 +23,7 @@ dependencies:
   - pip
   - pip:
     - tqdm
+    - circle-fit
     - sphinx-autodoc2
     - sphinx-book-theme
     - sphinx-last-updated-by-git
