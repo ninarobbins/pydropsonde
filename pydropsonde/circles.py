@@ -2,7 +2,6 @@ from dataclasses import dataclass
 import numpy as np
 import xarray as xr
 import circle_fit as cf
-import warnings
 import tqdm
 
 _no_default = object()
@@ -19,10 +18,6 @@ class Circle:
     flight_id: str
     platform_id: str
     segment_id: str
-
-    def dummy_circle_function(self):
-        print(self.flight_id, self.segment_id, self.platform_id)
-        return self
 
     def get_xy_coords_for_circles(self):
         x_coor = (
@@ -47,13 +42,9 @@ class Circle:
                     ]
                 )
 
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=RuntimeWarning)
-            circle_y = np.nanmean(c_yc) / (110.54 * 1000)
-            circle_x = np.nanmean(c_xc) / (
-                111.320 * np.cos(np.radians(circle_y)) * 1000
-            )
-            circle_diameter = np.nanmean(c_r) * 2
+        circle_y = np.nanmean(c_yc) / (110.54 * 1000)
+        circle_x = np.nanmean(c_xc) / (111.320 * np.cos(np.radians(circle_y)) * 1000)
+        circle_diameter = np.nanmean(c_r) * 2
 
         xc = [None] * len(x_coor.T)
         yc = [None] * len(y_coor.T)
@@ -64,11 +55,18 @@ class Circle:
         delta_x = x_coor - xc  # *111*1000 # difference of sonde long from mean long
         delta_y = y_coor - yc  # *111*1000 # difference of sonde lat from mean lat
 
-        object.__setattr__(self, "circle_lon", circle_x)
-        object.__setattr__(self, "circle_lat", circle_y)
-        object.__setattr__(self, "circle_diameter", circle_diameter)
-        object.__setattr__(self, "dx", delta_x)
-        object.__setattr__(self, "dy", delta_y)
+        new_vars = dict(
+            circle_flight_altitude=self.circle_ds["aircraft_geopotential_altitude"]
+            .mean()
+            .values,
+            circle_time=self.circle_ds["launch_time"].mean().values,
+            circle_lon=circle_x,
+            circle_lat=circle_y,
+            circle_diameter=circle_diameter,
+            dx=(["sonde_id", "alt"], delta_x.values),
+            dy=(["sonde_id", "alt"], delta_y.values),
+        )
+        self.circle_ds = self.circle_ds.assign(new_vars)
 
         return self
 
@@ -80,30 +78,33 @@ class Circle:
         :returns: intercept, dudx, dudy, and the original dataset.
         """
         u = self.circle_ds[var]
-        u_ = u
-        # Fix NaNs
-        u = np.array(u, copy=True)
+        # to fix nans, do a copy
+        u_cal = u.copy()
+        # a does not need to be copied as this creates a copy already
+        a = np.stack(
+            [np.ones_like(self.circle_ds.dx), self.circle_ds.dx, self.circle_ds.dy],
+            axis=-1,
+        )
 
-        # a is created by stacking ones_like(self.dx), self.dx, and self.dy
-        a = np.stack([np.ones_like(self.dx), self.dx, self.dy], axis=-1)
-
-        # Handle missing values
-        invalid = np.isnan(u) | np.isnan(self.dx) | np.isnan(self.dy)
+        # for handling missing values, both u and a are set to 0, that way
+        # these items don't influence the fit
+        invalid = (
+            np.isnan(u_cal) | np.isnan(self.circle_ds.dx) | np.isnan(self.circle_ds.dy)
+        )
         under_constraint = np.sum(~invalid, axis=-1) < 6
-        u[invalid] = 0
-        a[invalid] = 0
+        # Use `.where()` to mask invalid elements with 0
+        u_cal = u_cal.where(~invalid, 0)
+        a[invalid] = 0  # Broadcasting the mask
 
         a_inv = np.linalg.pinv(a)
 
-        # Fit the model using np.einsum
-        intercept, dudx, dudy = np.einsum("...rm,...m->r...", a_inv, u)
+        intercept, dudx, dudy = np.einsum("...rm,...m->r...", a_inv, u_cal)
 
-        # Set under-constrained values to NaN
         intercept[under_constraint] = np.nan
         dudx[under_constraint] = np.nan
         dudy[under_constraint] = np.nan
 
-        return intercept, dudx, dudy, u_
+        return intercept, dudx, dudy
 
     def fit2d_xr(
         self,
@@ -148,11 +149,10 @@ class Circle:
             var_dy_name = "d" + var + "dy"
 
             # Apply the fit2d_xr method for each variable (assuming fit2d_xr is defined in the class)
-            intercept, dudx, dudy, sounding = self.fit2d_xr(var)
+            intercept, dudx, dudy = self.fit2d_xr(var)
 
             object.__setattr__(self, mean_var_name, intercept)
             object.__setattr__(self, var_dx_name, dudx)
             object.__setattr__(self, var_dy_name, dudy)
-            object.__setattr__(self, var + "_sounding", sounding)
 
         return self
