@@ -127,7 +127,7 @@ class Circle:
             vectorize=True,
         )
 
-    def fit_multiple_vars(self, variables: list = ["u", "v", "q", "ta", "p"]):
+    def apply_fit2d(self, variables: list = ["u", "v", "q", "ta", "p"]):
         """
         Apply the 2D linear fit for multiple variables (e.g., u, v, q, ta, p) for this circle.
 
@@ -142,17 +142,23 @@ class Circle:
             A dictionary where keys are the variable names and values are the results (intercept, dudx, dudy, sounding).
         """
 
+        # Dictionary to store all the results to be assigned in one go
+        new_data = {}
+
         # Loop over each variable and apply the fit2d_xr method
         for var in tqdm.tqdm(variables):
-            mean_var_name = var
-            var_dx_name = "d" + var + "dx"
-            var_dy_name = "d" + var + "dy"
+            mean_var_name = var + "_intercept"  # The name for the intercept
+            var_dx_name = "d" + var + "dx"  # Name for the x-gradient
+            var_dy_name = "d" + var + "dy"  # Name for the y-gradient
 
-            # Apply the fit2d_xr method for each variable (assuming fit2d_xr is defined in the class)
+            # Apply the fit2d_xr method and unpack the results
             intercept, dudx, dudy = self.fit2d_xr(var)
 
-            object.__setattr__(self, mean_var_name, intercept)
-            object.__setattr__(self, var_dx_name, dudx)
-            object.__setattr__(self, var_dy_name, dudy)
+            # Store the new variables in the dictionary with proper names
+            new_data[mean_var_name] = intercept
+            new_data[var_dx_name] = dudx
+            new_data[var_dy_name] = dudy
+
+        self.circle_ds = self.circle_ds.assign(new_data)
 
         return self
