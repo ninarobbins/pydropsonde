@@ -61,6 +61,7 @@ jobs:
         run: pytest
       - name: Run pipeline
         run: pydropsonde -c ./dropsonde.cfg
+<<<<<<< HEAD
   pypi-publish:
     runs-on: ubuntu-latest
     permissions:
@@ -126,10 +127,12 @@ jobs:
       - name: Run pipeline
         run: poetry run pydropsonde -c ./dropsonde.cfg
 
+=======
+>>>>>>> 8d1d75a (add build from toml)
 
   publish-to-PyPI:
     runs-on: ubuntu-latest
-    needs: [build-from-lock]
+    needs: [build-from-lock, build-from-toml]
     permissions:
       id-token: write
     steps:
