@@ -70,95 +70,52 @@ class Circle:
 
         return self
 
-    def fit2d(self, var: str = None):
-        """
-        Estimate a 2D linear model to calculate u-values from x-y coordinates.
+    @staticmethod
+    def fit2d(x, y, u, var=None):
+        # Function logic goes here
+        # No need for self here since it's now a static method
+        a = np.stack([np.ones_like(x), x, y], axis=-1)
 
-        :param var: Variable name to extract from the dataset.
-        :returns: intercept, dudx, dudy, and the original dataset.
-        """
-        u = self.circle_ds[var]
-        # to fix nans, do a copy
-        u_cal = u.copy()
-        # a does not need to be copied as this creates a copy already
-        a = np.stack(
-            [np.ones_like(self.circle_ds.dx), self.circle_ds.dx, self.circle_ds.dy],
-            axis=-1,
-        )
-
-        # for handling missing values, both u and a are set to 0, that way
-        # these items don't influence the fit
-        invalid = (
-            np.isnan(u_cal) | np.isnan(self.circle_ds.dx) | np.isnan(self.circle_ds.dy)
-        )
-        under_constraint = np.sum(~invalid, axis=-1) < 6
-        # Use `.where()` to mask invalid elements with 0
-        u_cal = u_cal.where(~invalid, 0)
-        a[invalid] = 0  # Broadcasting the mask
+        invalid = np.isnan(u) | np.isnan(x) | np.isnan(y)
+        u_cal = np.where(invalid, 0, u)
+        a[invalid] = 0
 
         a_inv = np.linalg.pinv(a)
-
         intercept, dudx, dudy = np.einsum("...rm,...m->r...", a_inv, u_cal)
-
-        intercept[under_constraint] = np.nan
-        dudx[under_constraint] = np.nan
-        dudy[under_constraint] = np.nan
 
         return intercept, dudx, dudy
 
-    def fit2d_xr(
-        self,
-        var: str = None,
-        input_core_dims=["sonde_id"],
-        output_core_dims=["sonde_id"],
-    ):
-        """
-        Apply the fit2d method to the xarray object using xr.apply_ufunc.
-
-        :param var: Variable name for the dataset.
-        :returns: Xarray object with intercept, dudx, dudy, and original dataset.
-        """
-        # Note that we do not pass self.dx and self.dy here; they are used internally by fit2d.
+    def fit2d_xr(self, x, y, u, sonde_dim="sonde_id"):
+        # Apply the static method fit2d without passing self
         return xr.apply_ufunc(
-            lambda v: self.fit2d(v),
-            var,
-            input_core_dims=[input_core_dims],
-            output_core_dims=[(), (), (), output_core_dims],
-            vectorize=True,
+            self.__class__.fit2d,  # Call the static method without passing `self`
+            x,
+            y,
+            u,
+            input_core_dims=[
+                [sonde_dim],
+                [sonde_dim],
+                [sonde_dim],
+            ],  # Specify input dims
+            output_core_dims=[(), (), ()],  # Output dimensions as scalars
         )
 
-    def apply_fit2d(self, variables: list = ["u", "v", "q", "ta", "p"]):
-        """
-        Apply the 2D linear fit for multiple variables (e.g., u, v, q, ta, p) for this circle.
+    def apply_fit2d(self):
+        # Loop over the parameters to apply fit2d_xr to each of them
+        for par in tqdm.tqdm(["u", "v", "q", "ta", "p"]):
+            varnames = [par + "0", "d" + par + "dx", "d" + par + "dy"]
 
-        Parameters
-        ----------
-        variables : list
-            A list of variable names (e.g., ["u", "v", "q", "ta", "p"]) to apply fit2d_xr to.
+            # Apply fit2d_xr to each variable, and assign the result to circle_ds
+            results = self.fit2d_xr(
+                x=self.circle_ds.dx,
+                y=self.circle_ds.dy,
+                u=self.circle_ds[par],
+                sonde_dim="sonde_id",
+            )
 
-        Returns
-        -------
-        dict
-            A dictionary where keys are the variable names and values are the results (intercept, dudx, dudy, sounding).
-        """
-
-        # Dictionary to store all the results to be assigned in one go
-        new_data = {}
-
-        # Loop over each variable and apply the fit2d_xr method
-        for var in tqdm.tqdm(variables):
-            mean_var_name = var + "_intercept"  # The name for the intercept
-            var_dx_name = "d" + var + "dx"  # Name for the x-gradient
-            var_dy_name = "d" + var + "dy"  # Name for the y-gradient
-
-            # Apply the fit2d_xr method and unpack the results
-            intercept, dudx, dudy = self.fit2d_xr(var)
-
-            # Store the new variables in the dictionary with proper names
-            new_data[mean_var_name] = intercept
-            new_data[var_dx_name] = dudx
-            new_data[var_dy_name] = dudy
-
-        self.circle_ds = self.circle_ds.assign(new_data)
+            # Assign the results using the varnames list for the output variables
+            self.circle_ds = self.circle_ds.assign(
+                {varname: result for varname, result in zip(varnames, results)}
+            )
 
         return self
