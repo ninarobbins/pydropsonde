@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+import metpy.calc as mpcalc
+from metpy.units import units
 
 _no_default = object()
 
@@ -26,4 +28,30 @@ class Circle:
         self.circle_ds = self.circle_ds.assign(
             dict(div=(["alt"], D.values), vor=(["alt"], vor.values))
         )
+        return self
+
+    def get_density(self, sonde_dim="sonde_id"):
+        mr = mpcalc.mixing_ratio_from_specific_humidity(
+            self.circle_ds.q.values,
+        )
+        density = mpcalc.density(
+            self.circle_ds.p.values * units.Pa,
+            self.circle_ds.ta.values * units.kelvin,
+            mr,
+        )
+        self.circle_ds = self.circle_ds.assign(
+            dict(density=(self.circle_ds.ta.dims, density.magnitude))
+        )
+        self.circle_ds["density"].attrs = {
+            "standard_name": "density",
+            "units": str(density.units),
+        }
+        self.circle_ds = self.circle_ds.assign(
+            dict(mean_density=self.circle_ds["density"].mean(sonde_dim))
+        )
+        self.circle_ds["mean_density"].attrs = {
+            "standard_name": "mean density",
+            "units": str(density.units),
+        }
+
         return self
