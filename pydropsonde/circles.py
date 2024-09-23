@@ -214,3 +214,12 @@ class Circle:
         ds[alt_var].attrs.update(alt_attrs)
         self.circle_ds = ds
         return self
+
+    def get_div_and_vor(self):
+        D = self.circle_ds.dudx + self.circle_ds.dvdy
+        vor = self.circle_ds.dvdx - self.circle_ds.dudy
+
+        self.circle_ds = self.circle_ds.assign(
+            dict(div=(["alt"], D.values), vor=(["alt"], vor.values))
+        )
+        return self
