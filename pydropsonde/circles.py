@@ -1,6 +1,10 @@
 from dataclasses import dataclass
+import numpy as np
+import xarray as xr
 import metpy.calc as mpcalc
 from metpy.units import units
+import metpy.constants as mpconst
+
 
 _no_default = object()
 
@@ -53,5 +57,39 @@ class Circle:
             "standard_name": "mean density",
             "units": str(density.units),
         }
+
+        return self
+
+    def get_vertical_velocity(self):
+        div = self.circle_ds.div.where(~np.isnan(self.circle_ds.div), drop=True).sortby(
+            "alt"
+        )
+        zero_vel = xr.DataArray(data=[0], dims="alt", coords={"alt": [0]})
+
+        height = xr.concat([zero_vel, div["alt"]], dim="alt")
+        height_diff = height.diff(dim="alt")
+
+        del_w = -div * height_diff.values
+
+        w_vel = del_w.cumsum(dim="alt")
+        self.circle_ds = self.circle_ds.assign(dict(w_vel=w_vel))
+        self.circle_ds["w_vel"].attrs = {
+            "standard name": "vertical velocity",
+            "units": str(units.meter / units.second),
+        }
+
+        return self
+
+    def get_omega(self):
+        p_vel = (
+            -self.circle_ds.mean_density.values
+            * units(self.circle_ds.mean_density.attrs["units"])
+            * self.circle_ds.w_vel.values
+            * units(self.circle_ds.w_vel.attrs["units"])
+            * mpconst.earth_gravity
+        )
+        self.circle_ds = self.circle_ds.assign(
+            dict(omega=(self.circle_ds.w_vel.dims, p_vel.magnitude))
+        )
 
         return self
