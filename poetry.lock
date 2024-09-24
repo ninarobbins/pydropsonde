@@ -164,6 +164,21 @@ files = [
 ]
 
 [[package]]
+name = "circle-fit"
+version = "0.2.1"
+description = "A Circle Fitting Library for Python"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "circle_fit-0.2.1-py3-none-any.whl", hash = "sha256:45c3813638e29354fd3b65eb9c03dea37125b31d2c8dad2e7f98c5edcdb2f428"},
+    {file = "circle_fit-0.2.1.tar.gz", hash = "sha256:54a8f361887fdcbcec15fd681e55051de7d4e8143e45353c082c58ba32e7dcb4"},
+]
+
+[package.dependencies]
+numpy = ">=1.21.0"
+scipy = "*"
+
+[[package]]
 name = "cmocean"
 version = "4.0.3"
 description = "Colormaps for Oceanography"
