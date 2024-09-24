@@ -41,6 +41,7 @@ tqdm = "*"
 xarray = "*"
 xhistogram = "*"
 zarr = "*"
+circle-fit = "*"
 
 [tool.poetry.group.test.dependencies]
 pytest = "*"
