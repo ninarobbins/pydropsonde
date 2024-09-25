@@ -76,8 +76,6 @@ class Circle:
 
     @staticmethod
     def fit2d(x, y, u, var=None):
-        # Function logic goes here
-        # No need for self here since it's now a static method
         a = np.stack([np.ones_like(x), x, y], axis=-1)
 
         invalid = np.isnan(u) | np.isnan(x) | np.isnan(y)
@@ -90,7 +88,6 @@ class Circle:
         return intercept, dudx, dudy
 
     def fit2d_xr(self, x, y, u, sonde_dim="sonde_id"):
-        # Apply the static method fit2d without passing self
         return xr.apply_ufunc(
             self.__class__.fit2d,  # Call the static method without passing `self`
             x,
@@ -105,11 +102,9 @@ class Circle:
         )
 
     def apply_fit2d(self):
-        # Loop over the parameters to apply fit2d_xr to each of them
         for par in tqdm.tqdm(["u", "v", "q", "ta", "p"]):
             varnames = [par + "0", "d" + par + "dx", "d" + par + "dy"]
 
-            # Apply fit2d_xr to each variable, and assign the result to circle_ds
             results = self.fit2d_xr(
                 x=self.circle_ds.dx,
                 y=self.circle_ds.dy,
@@ -117,7 +112,6 @@ class Circle:
                 sonde_dim="sonde_id",
             )
 
-            # Assign the results using the varnames list for the output variables
             self.circle_ds = self.circle_ds.assign(
                 {varname: result for varname, result in zip(varnames, results)}
             )
