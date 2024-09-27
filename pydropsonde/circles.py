@@ -3,6 +3,7 @@ import numpy as np
 import xarray as xr
 import circle_fit as cf
 import tqdm
+from metpy.units import units
 
 _no_default = object()
 
@@ -21,7 +22,7 @@ class Circle:
 
     def get_xy_coords_for_circles(self):
         if self.circle_ds.lon.size == 0 or self.circle_ds.lat.size == 0:
-            print("Empty segment: 'lon' or 'lat' is empty.")
+            print("{segment_id} is an empty segment: 'lon' or 'lat' is empty.")
             return None  # or some default value like [], np.array([]), etc.
 
         x_coor = (
@@ -59,23 +60,66 @@ class Circle:
         delta_x = x_coor - xc  # *111*1000 # difference of sonde long from mean long
         delta_y = y_coor - yc  # *111*1000 # difference of sonde lat from mean lat
 
+        delta_x_attrs = {
+            "name": "dx",
+            "description": "Difference of sonde longitude from mean longitude",
+            "units": str(units.degree_east),
+        }
+        delta_y_attrs = {
+            "name": "dy",
+            "description": "Difference of sonde latitude from mean latitude",
+            "units": str(units.degree_north),
+        }
+        circle_diameter_attrs = {
+            "name": "circle_diameter",
+            "description": "Diameter of fitted circle for all regressed sondes in circle",
+            "units": str(units.meters),
+        }
+        circle_lon_attrs = {
+            "name": "circle_lon",
+            "description": "Longitude of fitted circle for all regressed sondes in circle",
+            "units": str(units.degree_east),
+        }
+        circle_lat_attrs = {
+            "name": "circle_lat",
+            "description": "Latitude of fitted circle for all regressed sondes in circle",
+            "units": str(units.degree_north),
+        }
+        flight_altitude_attrs = {
+            "name": "flight_altitude",
+            "description": "Mean altitude of the aircraft during the circle",
+            "units": str(units.meters),
+        }
+        circle_time_attrs = {
+            "name": "circle_time",
+            "description": "Mean launch time of all sondes in circle",
+            "units": str(units.seconds),
+        }
+
         new_vars = dict(
-            circle_flight_altitude=self.circle_ds["aircraft_geopotential_altitude"]
-            .mean()
-            .values,
-            circle_time=self.circle_ds["launch_time"].mean().values,
-            circle_lon=circle_x,
-            circle_lat=circle_y,
-            circle_diameter=circle_diameter,
-            dx=(["sonde_id", "alt"], delta_x.values),
-            dy=(["sonde_id", "alt"], delta_y.values),
+            flight_altitude=(
+                [],
+                self.circle_ds["aircraft_geopotential_altitude"].mean().values,
+                flight_altitude_attrs,
+            ),
+            circle_time=(
+                [],
+                self.circle_ds["launch_time"].mean().values,
+                circle_time_attrs,
+            ),
+            circle_lon=([], circle_x, circle_lon_attrs),
+            circle_lat=([], circle_y, circle_lat_attrs),
+            circle_diameter=([], circle_diameter, circle_diameter_attrs),
+            dx=(["sonde_id", "alt"], delta_x.values, delta_x_attrs),
+            dy=(["sonde_id", "alt"], delta_y.values, delta_y_attrs),
         )
+
         self.circle_ds = self.circle_ds.assign(new_vars)
 
         return self
 
     @staticmethod
-    def fit2d(x, y, u, var=None):
+    def fit2d(x, y, u):
         a = np.stack([np.ones_like(x), x, y], axis=-1)
 
         invalid = np.isnan(u) | np.isnan(x) | np.isnan(y)
@@ -102,8 +146,24 @@ class Circle:
         )
 
     def apply_fit2d(self):
-        for par in tqdm.tqdm(["u", "v", "q", "ta", "p"]):
-            varnames = [par + "0", "d" + par + "dx", "d" + par + "dy"]
+        variables = ["u", "v", "q", "ta", "p"]
+
+        description_names = [
+            "eastward wind",
+            "northward wind",
+            "specific humidity",
+            "air temperature",
+            "air pressure",
+        ]
+
+        for par, name in zip(tqdm.tqdm(variables), description_names):
+            varnames = ["mean_" + par, "d" + par + "dx", "d" + par + "dy"]
+            var_units = units(self.circle_ds[par].attrs.get("units", None))
+            descriptions = [
+                "Circle mean of " + name,
+                "Zonal gradient of " + name,
+                "Meridional gradient of " + name,
+            ]
 
             results = self.fit2d_xr(
                 x=self.circle_ds.dx,
@@ -112,8 +172,27 @@ class Circle:
                 sonde_dim="sonde_id",
             )
 
-            self.circle_ds = self.circle_ds.assign(
-                {varname: result for varname, result in zip(varnames, results)}
-            )
+            assign_dict = {}
+            for varname, result, description in zip(varnames, results, descriptions):
+                assign_dict[varname] = (
+                    ["alt"],
+                    result.data,
+                )  # Assign data without attrs for now
+
+            # Assign the new variables to the dataset
+            self.circle_ds = self.circle_ds.assign(assign_dict)
+
+            # Now, add the attributes (description, units) after assignment
+            for varname, description in zip(varnames, descriptions):
+                self.circle_ds[varname].attrs["description"] = description
+
+                if "mean" in varname:
+                    result_units = "{:~}".format(var_units.units)
+                elif "dq" in varname:
+                    result_units = "kg / kg / m"
+                else:
+                    result_units = "{:~}".format((var_units / units.meters).units)
+
+                self.circle_ds[varname].attrs["units"] = result_units
 
         return self
