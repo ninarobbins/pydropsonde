@@ -85,8 +85,8 @@ class Circle:
             "description": "Latitude of fitted circle for all regressed sondes in circle",
             "units": str(units.degree_north),
         }
-        flight_altitude_attrs = {
-            "name": "flight_altitude",
+        circle_altitude_attrs = {
+            "name": "circle_altitude",
             "description": "Mean altitude of the aircraft during the circle",
             "units": str(units.meters),
         }
@@ -97,10 +97,10 @@ class Circle:
         }
 
         new_vars = dict(
-            flight_altitude=(
+            circle_altitude=(
                 [],
                 self.circle_ds["aircraft_geopotential_altitude"].mean().values,
-                flight_altitude_attrs,
+                circle_altitude_attrs,
             ),
             circle_time=(
                 [],
