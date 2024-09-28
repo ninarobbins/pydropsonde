@@ -164,6 +164,11 @@ class Circle:
                 "Zonal gradient of " + name,
                 "Meridional gradient of " + name,
             ]
+            use_names = [
+                par + "_circle_mean",
+                "derivative_of_" + par + "_wrt_x",
+                "derivative_of_" + par + "_wrt_y",
+            ]
 
             results = self.fit2d_xr(
                 x=self.circle_ds.dx,
@@ -173,26 +178,24 @@ class Circle:
             )
 
             assign_dict = {}
-            for varname, result, description in zip(varnames, results, descriptions):
-                assign_dict[varname] = (
-                    ["alt"],
-                    result.data,
-                )  # Assign data without attrs for now
-
-            # Assign the new variables to the dataset
-            self.circle_ds = self.circle_ds.assign(assign_dict)
-
-            # Now, add the attributes (description, units) after assignment
-            for varname, description in zip(varnames, descriptions):
-                self.circle_ds[varname].attrs["description"] = description
-
+            for varname, result, description, use_name in zip(
+                varnames, results, descriptions, use_names
+            ):
                 if "mean" in varname:
                     result_units = "{:~}".format(var_units.units)
-                elif "dq" in varname:
-                    result_units = "kg / kg / m"
                 else:
                     result_units = "{:~}".format((var_units / units.meters).units)
 
-                self.circle_ds[varname].attrs["units"] = result_units
+                assign_dict[varname] = (
+                    ["alt"],
+                    result.data,
+                    {
+                        "name": use_name,
+                        "description": description,
+                        "units": result_units,
+                    },
+                )
+
+            self.circle_ds = self.circle_ds.assign(assign_dict)
 
         return self
