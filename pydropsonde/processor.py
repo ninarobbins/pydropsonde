@@ -1481,3 +1481,35 @@ class Gridded:
 
         self.l4_filename = l4_filename
         return self
+    
+
+    def write_l4(self, l4_dir: str = None, _interim_l4_ds: xr.Dataset = None):
+        if l4_dir is None:
+            l4_dir = self.l4_dir
+
+        if not os.path.exists(l4_dir):
+            os.makedirs(l4_dir)
+        if ".nc" in self.l4_filename:
+            filetype = "nc"
+        elif ".zarr" in self.l4_filename:
+            filetype = "zarr"
+        else:
+            raise ValueError("filetype unknown")
+        
+         # if no l4 dataset then create a dummy dataset
+        if _interim_l4_ds is None:
+            _interim_l4_ds = xr.Dataset(
+                {
+                    "dummy_var": (("dim1", "dim2"), np.empty((10, 10)) * np.nan)
+                },
+                coords={
+                    "dim1": np.arange(10),
+                    "dim2": np.arange(10)
+                }
+            )
+        
+        hh.to_file(
+            ds=_interim_l4_ds,
+            path=os.path.join(l4_dir, self.l4_filename),
+        )
+        return self

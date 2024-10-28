@@ -570,7 +570,7 @@ pipeline = {
     "create_L4": {
         "intake": "gridded",
         "apply": apply_method_to_dataset,
-        "functions": ["get_l4_dir", "get_l4_filename"],
+        "functions": ["get_l4_dir", "get_l4_filename", "write_l4"],
         "output": "gridded",
         "comment": "This step creates the L4 dataset after adding additional products.",
     },
