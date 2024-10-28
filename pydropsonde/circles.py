@@ -61,12 +61,12 @@ class Circle:
         delta_y = y_coor - yc  # *111*1000 # difference of sonde lat from mean lat
 
         delta_x_attrs = {
-            "name": "dx",
+            "name": "x",
             "description": "Difference of sonde longitude from mean longitude",
             "units": str(units.degree_east),
         }
         delta_y_attrs = {
-            "name": "dy",
+            "name": "y",
             "description": "Difference of sonde latitude from mean latitude",
             "units": str(units.degree_north),
         }
@@ -110,8 +110,8 @@ class Circle:
             circle_lon=([], circle_x, circle_lon_attrs),
             circle_lat=([], circle_y, circle_lat_attrs),
             circle_diameter=([], circle_diameter, circle_diameter_attrs),
-            dx=(["sonde_id", "alt"], delta_x.values, delta_x_attrs),
-            dy=(["sonde_id", "alt"], delta_y.values, delta_y_attrs),
+            x=(["sonde_id", "alt"], delta_x.values, delta_x_attrs),
+            y=(["sonde_id", "alt"], delta_y.values, delta_y_attrs),
         )
 
         self.circle_ds = self.circle_ds.assign(new_vars)
@@ -127,9 +127,9 @@ class Circle:
         a[invalid] = 0
 
         a_inv = np.linalg.pinv(a)
-        intercept, dudx, dudy = np.einsum("...rm,...m->r...", a_inv, u_cal)
+        intercept, dux, duy = np.einsum("...rm,...m->r...", a_inv, u_cal)
 
-        return intercept, dudx, dudy
+        return intercept, dux, duy
 
     def fit2d_xr(self, x, y, u, sonde_dim="sonde_id"):
         return xr.apply_ufunc(
@@ -157,7 +157,7 @@ class Circle:
         ]
 
         for par, name in zip(tqdm.tqdm(variables), description_names):
-            varnames = ["mean_" + par, "d" + par + "dx", "d" + par + "dy"]
+            varnames = ["mean_" + par, "d" + par + "x", "d" + par + "y"]
             var_units = units(self.circle_ds[par].attrs.get("units", None))
             descriptions = [
                 "Circle mean of " + name,
@@ -171,8 +171,8 @@ class Circle:
             ]
 
             results = self.fit2d_xr(
-                x=self.circle_ds.dx,
-                y=self.circle_ds.dy,
+                x=self.circle_ds.x,
+                y=self.circle_ds.y,
                 u=self.circle_ds[par],
                 sonde_dim="sonde_id",
             )
