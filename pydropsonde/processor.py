@@ -1500,16 +1500,20 @@ class Gridded:
         if _interim_l4_ds is None:
             _interim_l4_ds = xr.Dataset(
                 {
-                    "dummy_var": (("dim1", "dim2"), np.empty((10, 10)) * np.nan)
+                    "dummy_var": (("circle", "alt"), np.empty((10, 10)) * np.nan)
                 },
                 coords={
-                    "dim1": np.arange(10),
-                    "dim2": np.arange(10)
+                    "circle": np.arange(10),
+                    "alt": np.arange(10)
                 }
             )
+
+        encoding = hh.get_encoding(_interim_l4_ds, filetype=filetype)
+
         
         hh.to_file(
             ds=_interim_l4_ds,
             path=os.path.join(l4_dir, self.l4_filename),
+            encoding=encoding,
         )
         return self
