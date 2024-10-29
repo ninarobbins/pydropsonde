@@ -128,6 +128,13 @@ l3_coords = [
     "aircraft_msl_altitude",
 ]
 
+l4_coords = [
+    "circle_time",
+    "circle_lon",
+    "circle_lat",
+    "alt",
+]
+
 
 path_to_flight_ids = "{platform}/Level_0"
 path_to_l0_files = "{platform}/Level_0/{flight_id}"
