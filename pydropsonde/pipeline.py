@@ -358,8 +358,13 @@ def iterate_Circle_method_over_dict_of_Circle_objects(
 
 
 def sondes_to_gridded(sondes: dict, config: configparser.ConfigParser):
-    gridded = Gridded(sondes)
+    gridded = Gridded(sondes=sondes, circles=None)
     gridded.concat_sondes()
+    return gridded
+
+def circles_to_gridded(circles: dict, config: configparser.ConfigParser):
+    gridded = Gridded(circles=circles, sondes=None)
+    gridded.concat_circles()
     return gridded
 
 
@@ -570,5 +575,11 @@ pipeline = {
         ],
         "output": "circles",
         "comment": "calculate circle products",
+    },
+    "concatenate_circles": {
+        "intake": "circles",
+        "apply": circles_to_gridded,
+        "output": "gridded",
+        "comment": "This step concatenates the individual circle datasets to create the L4 dataset.",
     },
 }

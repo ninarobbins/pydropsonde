@@ -1316,17 +1316,38 @@ class Sonde:
 @dataclass(order=True)
 class Gridded:
     sondes: dict
+    circles: dict
 
     def concat_sondes(self, sortby=None):
         """
         function to concatenate all sondes using the combination of all measurement times and launch times
         """
+        if self.sondes is None:
+            raise ValueError("No sondes data available to concatenate.")
         if sortby is None:
             sortby = hh.l3_coords[0]
         list_of_l2_ds = [sonde._interim_l3_ds for sonde in self.sondes.values()]
         self._interim_l3_ds = xr.concat(
             list_of_l2_ds, dim="sonde_id", join="exact"
         ).sortby(sortby)
+        return self
+    
+    def concat_circles(self, sortby=None):
+        """
+        function to concatenate all circles using the combination of all circle times
+        """
+        if sortby is None:
+            sortby = hh.l4_coords[0]
+        
+        list_of_circle_ds = [
+        circle.circle_ds.assign_coords(circle_time=circle.circle_ds.circle_time.values).expand_dims("circle_time")
+        for circle in self.circles.values()
+        ]
+
+        self._interim_l4_ds = xr.concat(
+            list_of_circle_ds, dim="circle_time"
+        ).sortby(sortby)
+
         return self
 
     def get_all_attrs(self):
