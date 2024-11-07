@@ -453,7 +453,7 @@ class Sonde:
         self,
         variables=["u_wind", "v_wind", "rh", "tdry", "pres"],
         alt_bounds=[0, 1000],
-        alt_dimension_name="alt",
+        alt_dimension_name="gpsalt",
         count_threshold=50,
         add_near_surface_count_attribute=True,
         skip=False,
@@ -539,6 +539,24 @@ class Sonde:
                     )
             return self
 
+    def alt_near_gpsalt(self):
+        dataset = self.aspen_ds[["alt", "gpsalt"]]
+        mean_diff = np.abs((dataset.alt - dataset.gpsalt).mean(skipna=True))
+        if mean_diff > 150:
+            object.__setattr__(
+                self.qc,
+                "alt_near_gpsalt",
+                False,
+            )
+        else:
+            object.__setattr__(
+                self.qc,
+                "alt_near_gpsalt",
+                True,
+            )
+
+        return self
+
     def filter_qc_fail(self, filter_flags=None):
         """
         Filters the sonde based on a list of QC flags. If any of the flags are False, the sonde will be filtered out from creating L2.
@@ -560,7 +578,6 @@ class Sonde:
             If a flag in filter_flags does not exist as an attribute of the sonde object, or if 'all_except_<prefix>' is provided in filter_flags along with other values. Please ensure that the flag names provided in 'filter_flags' correspond to existing QC attributes. If you're using a prefix to filter attributes, make sure the prefix is correct. Check your skipped QC functions or your provided list of filter flags.
         """
         all_qc_attributes = [attr for attr in dir(self.qc) if not attr.startswith("__")]
-
         if filter_flags is None:
             filter_flags = []
         elif isinstance(filter_flags, str):
