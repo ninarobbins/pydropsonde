@@ -1316,6 +1316,7 @@ class Sonde:
 @dataclass(order=True)
 class Gridded:
     sondes: dict
+    circles: dict = None
 
     def concat_sondes(self, sortby=None):
         """
@@ -1474,4 +1475,34 @@ class Gridded:
         self.platform_ids = platform_ids
         self.flight_ids = flight_ids
 
+        return self
+    
+    def get_l4_dir(self, l4_dir: str = None):
+        if l4_dir:
+            self.l4_dir = l4_dir
+        elif self.circles is not None:
+            self.l4_dir = (
+                list(self.circles.values())[0]
+                .l2_dir.replace("Level_2", "Level_4")
+                .replace(list(self.circles.values())[0].flight_id, "")
+                .replace(list(self.circles.values())[0].platform_id, "")
+            )
+        else:
+            raise ValueError("No circles and no l4 directory given, cannot continue")
+        return self
+
+    def get_l4_filename(self, l4_filename: str = None):
+        if l4_filename is None:
+            l4_filename = hh.l4_filename
+        else:
+            l4_filename = l4_filename
+
+        self.l4_filename = l4_filename
+        return self
+
+    def add_l4_ds(self, l4_dir: str = None):
+        if l4_dir is None:
+            self.l4_ds = self._interim_l4_ds.copy()
+        else:
+            self.l4_ds = xr.open_dataset(l4_dir)
         return self
