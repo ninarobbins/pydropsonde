@@ -487,6 +487,7 @@ pipeline = {
             "detect_floater",
             "profile_fullness",
             "near_surface_coverage",
+            "alt_near_gpsalt",
             "filter_qc_fail",
         ],
         "output": "sondes",
