@@ -18,5 +18,6 @@ For a quick start go to the :doc:`Tutorials <../tutorial/index>`. Under :doc:`Da
 
    CONTRIBUTING
    data/index
+   data/qc
    tutorial/index
    api
