@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 import numpy as np
+import xarray as xr
+import tqdm
 import circle_fit as cf
 
 _no_default = object()
@@ -112,5 +114,87 @@ class Circle:
         )
 
         self.circle_ds = self.circle_ds.assign(new_vars)
+
+        return self
+
+    @staticmethod
+    def fit2d(x, y, u):
+        a = np.stack([np.ones_like(x), x, y], axis=-1)
+
+        invalid = np.isnan(u) | np.isnan(x) | np.isnan(y)
+        u_cal = np.where(invalid, 0, u)
+        a[invalid] = 0
+
+        a_inv = np.linalg.pinv(a)
+        intercept, dux, duy = np.einsum("...rm,...m->r...", a_inv, u_cal)
+
+        return intercept, dux, duy
+
+    def fit2d_xr(self, x, y, u, sonde_dim="sonde_id"):
+        return xr.apply_ufunc(
+            self.__class__.fit2d,  # Call the static method without passing `self`
+            x,
+            y,
+            u,
+            input_core_dims=[
+                [sonde_dim],
+                [sonde_dim],
+                [sonde_dim],
+            ],  # Specify input dims
+            output_core_dims=[(), (), ()],  # Output dimensions as scalars
+        )
+
+    def apply_fit2d(self):
+        variables = ["u", "v", "q", "ta", "p"]
+
+        description_names = [
+            "eastward wind",
+            "northward wind",
+            "specific humidity",
+            "air temperature",
+            "air pressure",
+        ]
+
+        for par, name in zip(tqdm.tqdm(variables), description_names):
+            varnames = ["mean_" + par, "d" + par + "dx", "d" + par + "dy"]
+            var_units = self.circle_ds[par].attrs.get("units", None)
+            descriptions = [
+                "Circle mean of " + name,
+                "Zonal gradient of " + name,
+                "Meridional gradient of " + name,
+            ]
+            use_names = [
+                par + "_circle_mean",
+                "derivative_of_" + par + "_wrt_x",
+                "derivative_of_" + par + "_wrt_y",
+            ]
+
+            results = self.fit2d_xr(
+                x=self.circle_ds.x,
+                y=self.circle_ds.y,
+                u=self.circle_ds[par],
+                sonde_dim="sonde_id",
+            )
+
+            assign_dict = {}
+            for varname, result, description, use_name in zip(
+                varnames, results, descriptions, use_names
+            ):
+                if "mean" in varname:
+                    result_units = var_units
+                else:
+                    result_units = f"{var_units} m-1"
+
+                assign_dict[varname] = (
+                    ["alt"],
+                    result.data,
+                    {
+                        "name": use_name,
+                        "description": description,
+                        "units": result_units,
+                    },
+                )
+
+            self.circle_ds = self.circle_ds.assign(assign_dict)
 
         return self
