@@ -61,37 +61,37 @@ class Circle:
         delta_y = y_coor - yc  # *111*1000 # difference of sonde lat from mean lat
 
         delta_x_attrs = {
-            "name": "x",
+            "long_name": "x",
             "description": "Difference of sonde longitude from mean longitude",
             "units": self.circle_ds.lon.attrs["units"],
         }
         delta_y_attrs = {
-            "name": "y",
+            "long_name": "y",
             "description": "Difference of sonde latitude from mean latitude",
             "units": self.circle_ds.lat.attrs["units"],
         }
         circle_diameter_attrs = {
-            "name": "circle_diameter",
+            "long_name": "circle_diameter",
             "description": "Diameter of fitted circle for all regressed sondes in circle",
             "units": "m",
         }
         circle_lon_attrs = {
-            "name": "circle_lon",
+            "long_name": "circle_lon",
             "description": "Longitude of fitted circle for all regressed sondes in circle",
             "units": self.circle_ds.lon.attrs["units"],
         }
         circle_lat_attrs = {
-            "name": "circle_lat",
+            "long_name": "circle_lat",
             "description": "Latitude of fitted circle for all regressed sondes in circle",
             "units": self.circle_ds.lat.attrs["units"],
         }
         circle_altitude_attrs = {
-            "name": "circle_altitude",
+            "long_name": "circle_altitude",
             "description": "Mean altitude of the aircraft during the circle",
             "units": self.circle_ds.alt.attrs["units"],
         }
         circle_time_attrs = {
-            "name": "circle_time",
+            "long_name": "circle_time",
             "description": "Mean launch time of all sondes in circle",
         }
 
@@ -114,7 +114,6 @@ class Circle:
         )
 
         self.circle_ds = self.circle_ds.assign(new_vars)
-
         return self
 
     @staticmethod
@@ -144,29 +143,24 @@ class Circle:
             output_core_dims=[(), (), ()],  # Output dimensions as scalars
         )
 
-    def apply_fit2d(self):
+    def apply_fit2d(self, alt_var="alt"):
         variables = ["u", "v", "q", "ta", "p"]
+        alt_attrs = self.circle_ds[alt_var].attrs
 
-        description_names = [
-            "eastward wind",
-            "northward wind",
-            "specific humidity",
-            "air temperature",
-            "air pressure",
-        ]
-
-        for par, name in zip(tqdm.tqdm(variables), description_names):
+        for par in tqdm.tqdm(variables):
+            long_name = self.circle_ds[par].attrs.get("long_name")
+            standard_name = self.circle_ds[par].attrs.get("standard_name")
             varnames = ["mean_" + par, "d" + par + "dx", "d" + par + "dy"]
             var_units = self.circle_ds[par].attrs.get("units", None)
-            descriptions = [
-                "Circle mean of " + name,
-                "Zonal gradient of " + name,
-                "Meridional gradient of " + name,
+            long_names = [
+                "circle mean of " + long_name,
+                "zonal gradient of " + long_name,
+                "meridional gradient of " + long_name,
             ]
             use_names = [
-                par + "_circle_mean",
-                "derivative_of_" + par + "_wrt_x",
-                "derivative_of_" + par + "_wrt_y",
+                standard_name + "_circle_mean",
+                "derivative_of_" + standard_name + "_wrt_x",
+                "derivative_of_" + standard_name + "_wrt_y",
             ]
 
             results = self.fit2d_xr(
@@ -177,24 +171,30 @@ class Circle:
             )
 
             assign_dict = {}
-            for varname, result, description, use_name in zip(
-                varnames, results, descriptions, use_names
+            for varname, result, long_name, use_name in zip(
+                varnames, results, long_names, use_names
             ):
                 if "mean" in varname:
-                    result_units = var_units
+                    assign_dict[varname] = (
+                        [alt_var],
+                        result.data,
+                        {
+                            "long_name": long_name,
+                            "units": var_units,
+                        },
+                    )
                 else:
-                    result_units = f"{var_units} m-1"
+                    assign_dict[varname] = (
+                        [alt_var],
+                        result.data,
+                        {
+                            "standard_name": use_name,
+                            "long_name": long_name,
+                            "units": f"{var_units} m-1",
+                        },
+                    )
 
-                assign_dict[varname] = (
-                    ["alt"],
-                    result.data,
-                    {
-                        "name": use_name,
-                        "description": description,
-                        "units": result_units,
-                    },
-                )
-
-            self.circle_ds = self.circle_ds.assign(assign_dict)
-
+            ds = self.circle_ds.assign(assign_dict)
+        ds[alt_var].attrs.update(alt_attrs)
+        self.circle_ds = ds
         return self

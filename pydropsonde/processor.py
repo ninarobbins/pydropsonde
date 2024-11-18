@@ -1173,7 +1173,7 @@ class Sonde:
                 )
                 .rename({f"{alt_var}_bins": alt_var})
             )
-
+            interp_ds[alt_var].attrs.update(ds[alt_var].attrs)
             time_type = ds["time"].values.dtype
 
             binned_time = (
