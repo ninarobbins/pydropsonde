@@ -58,10 +58,59 @@ class Circle:
         delta_x = x_coor - xc  # *111*1000 # difference of sonde long from mean long
         delta_y = y_coor - yc  # *111*1000 # difference of sonde lat from mean lat
 
-        object.__setattr__(self, "circle_lon", circle_x)
-        object.__setattr__(self, "circle_lat", circle_y)
-        object.__setattr__(self, "circle_diameter", circle_diameter)
-        object.__setattr__(self, "dx", (["sounding", "alt"], delta_x))
-        object.__setattr__(self, "dy", (["sounding", "alt"], delta_y))
+        delta_x_attrs = {
+            "name": "x",
+            "description": "Difference of sonde longitude from mean longitude",
+            "units": self.circle_ds.lon.attrs["units"],
+        }
+        delta_y_attrs = {
+            "name": "y",
+            "description": "Difference of sonde latitude from mean latitude",
+            "units": self.circle_ds.lat.attrs["units"],
+        }
+        circle_diameter_attrs = {
+            "name": "circle_diameter",
+            "description": "Diameter of fitted circle for all regressed sondes in circle",
+            "units": "m",
+        }
+        circle_lon_attrs = {
+            "name": "circle_lon",
+            "description": "Longitude of fitted circle for all regressed sondes in circle",
+            "units": self.circle_ds.lon.attrs["units"],
+        }
+        circle_lat_attrs = {
+            "name": "circle_lat",
+            "description": "Latitude of fitted circle for all regressed sondes in circle",
+            "units": self.circle_ds.lat.attrs["units"],
+        }
+        circle_altitude_attrs = {
+            "name": "circle_altitude",
+            "description": "Mean altitude of the aircraft during the circle",
+            "units": self.circle_ds.alt.attrs["units"],
+        }
+        circle_time_attrs = {
+            "name": "circle_time",
+            "description": "Mean launch time of all sondes in circle",
+        }
+
+        new_vars = dict(
+            circle_altitude=(
+                [],
+                self.circle_ds["aircraft_msl_altitude"].mean().values,
+                circle_altitude_attrs,
+            ),
+            circle_time=(
+                [],
+                self.circle_ds["launch_time"].mean().values,
+                circle_time_attrs,
+            ),
+            circle_lon=([], circle_x, circle_lon_attrs),
+            circle_lat=([], circle_y, circle_lat_attrs),
+            circle_diameter=([], circle_diameter, circle_diameter_attrs),
+            x=(["sonde_id", "alt"], delta_x.values, delta_x_attrs),
+            y=(["sonde_id", "alt"], delta_y.values, delta_y_attrs),
+        )
+
+        self.circle_ds = self.circle_ds.assign(new_vars)
 
         return self
