@@ -19,6 +19,21 @@ class Circle:
     platform_id: str
     segment_id: str
 
+    def drop_m_N_vars(self):
+        """
+        drop m and N variables from level 3 from circle dataset
+        """
+        ds = self.circle_ds
+        ds = ds.drop_vars(
+            [f"m{var}" for var in ds.variables],
+            errors="ignore",
+        ).drop_vars(
+            [f"N{var}" for var in ds.variables],
+            errors="ignore",
+        )
+        self.circle_ds = ds
+        return self
+
     def get_xy_coords_for_circles(self):
         if self.circle_ds.lon.size == 0 or self.circle_ds.lat.size == 0:
             print("Empty segment: 'lon' or 'lat' is empty.")
