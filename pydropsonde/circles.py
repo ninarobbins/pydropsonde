@@ -162,6 +162,8 @@ class Circle:
         variables = ["u", "v", "q", "ta", "p"]
         alt_attrs = self.circle_ds[alt_var].attrs
 
+        assign_dict = {}
+
         for par in tqdm.tqdm(variables):
             long_name = self.circle_ds[par].attrs.get("long_name")
             standard_name = self.circle_ds[par].attrs.get("standard_name")
@@ -185,7 +187,6 @@ class Circle:
                 sonde_dim="sonde_id",
             )
 
-            assign_dict = {}
             for varname, result, long_name, use_name in zip(
                 varnames, results, long_names, use_names
             ):
