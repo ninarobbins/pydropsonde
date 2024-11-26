@@ -227,7 +227,6 @@ class Circle:
         self.circle_ds = self.circle_ds.assign(
             D=(["alt"], D.values, D_attrs)
         )
-        print(self.circle_ds)
         return self
     
     def get_vorticity(self):
@@ -241,13 +240,9 @@ class Circle:
         self.circle_ds = self.circle_ds.assign(
             vor=(["alt"], vor.values, vor_attrs)
         )
-        print(self.circle_ds)
         return self
 
     def get_density(self, sonde_dim="sonde_id"):
-        mr = hp.mmr2q(
-            self.circle_ds.q.values,
-        )
         density = hp.density(
             self.circle_ds.p,
             self.circle_ds.ta,
@@ -256,24 +251,23 @@ class Circle:
         density_attrs = {
             "standard_name": "air_density",
             "long_name": "Air density",
-            "units": str(density.units),
+            "units": "kg m-3",
         }
         mean_density_attrs = {
             "standard_name": "mean_air_density",
             "long_name": "Mean air density in circle",
-            "units": str(density.units),
+            "units": "kg m-3",
         }
         self.circle_ds = self.circle_ds.assign(
             dict(
-                density=(self.circle_ds.ta.dims, density.magnitude, density_attrs),
+                density=(self.circle_ds.ta.dims, density.values, density_attrs),
                 mean_density=(
                     ["alt"],
-                    self.circle_ds.density.mean(sonde_dim),
+                    density.mean(sonde_dim).values,
                     mean_density_attrs,
                 ),
             )
         )
-
         return self
 
     def get_vertical_velocity(self):
