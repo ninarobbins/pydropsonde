@@ -3,6 +3,9 @@ import numpy as np
 import xarray as xr
 import tqdm
 import circle_fit as cf
+from moist_thermodynamics import constants
+
+import pydropsonde.helper.physics as hp
 
 _no_default = object()
 
@@ -161,7 +164,6 @@ class Circle:
     def apply_fit2d(self, alt_var="alt"):
         variables = ["u", "v", "q", "ta", "p"]
         alt_attrs = self.circle_ds[alt_var].attrs
-
         assign_dict = {}
 
         for par in tqdm.tqdm(variables):
@@ -222,12 +224,12 @@ class Circle:
         vor_attrs = {
             "standard_name": "atmosphere_relative_vorticity",
             "long_name": "Area-averaged horizontal relative vorticity",
-            "units": str(1 / units.second),
+            "units": "s-1",
         }
         D_attrs = {
             "standard_name": "divergence_of_wind",
             "long_name": "Area-averaged horizontal mass divergence",
-            "units": str(1 / units.second),
+            "units": "m-1",
         }
         self.circle_ds = self.circle_ds.assign(
             dict(D=(["alt"], D.values, D_attrs), vor=(["alt"], vor.values, vor_attrs))
@@ -235,13 +237,13 @@ class Circle:
         return self
 
     def get_density(self, sonde_dim="sonde_id"):
-        mr = mpcalc.mixing_ratio_from_specific_humidity(
+        mr = hp.mmr2q(
             self.circle_ds.q.values,
         )
-        density = mpcalc.density(
-            self.circle_ds.p.values * units.Pa,
-            self.circle_ds.ta.values * units.kelvin,
-            mr,
+        density = hp.density(
+            self.circle_ds.p,
+            self.circle_ds.ta,
+            constants.Rv,
         )
         density_attrs = {
             "standard_name": "air_density",
@@ -281,7 +283,7 @@ class Circle:
         w_vel_attrs = {
             "standard_name": "upward_air_velocity",
             "long_name": "Area-averaged vertical air velocity",
-            "units": str(units.meter / units.second),
+            "units": w_vel.units,
         }
         self.circle_ds = self.circle_ds.assign(
             w_vel=(["alt"], w_vel.values, w_vel_attrs)
@@ -291,13 +293,12 @@ class Circle:
 
     def get_omega(self):
         # Ensure density and vertical velocity are properly aligned and use correct units
-        rho = self.circle_ds.mean_density * units(
-            self.circle_ds.mean_density.attrs["units"]
-        )
-        w = self.circle_ds.w_vel * units(self.circle_ds.w_vel.attrs["units"])
+        rho = self.circle_ds.mean_density
+
+        w = self.circle_ds.w_vel
 
         # Calculate omega using the correct formula: omega = - rho * g * w
-        g = mpconst.earth_gravity  # gravitational constant (metpy constant)
+        g = constants.gravity_earth  # gravitational constant
 
         # Compute omega (vertical pressure velocity)
         p_vel = -(rho * g * w)
