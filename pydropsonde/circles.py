@@ -161,7 +161,7 @@ class Circle:
             output_core_dims=[(), (), ()],  # Output dimensions as scalars
         )
 
-    def apply_fit2d(self, alt_var="alt"):
+    def apply_fit2d(self, alt_dim="alt"):
         variables = ["u", "v", "q", "ta", "p"]
         alt_attrs = self.circle_ds[alt_var].attrs
         assign_dict = {}
@@ -217,7 +217,7 @@ class Circle:
         self.circle_ds = ds
         return self
 
-    def get_divergence(self):
+    def get_divergence(self, alt_dim="alt"):
         D = self.circle_ds.dudx + self.circle_ds.dvdy
         D_attrs = {
             "standard_name": "divergence_of_wind",
@@ -225,11 +225,11 @@ class Circle:
             "units": "m-1",
         }
         self.circle_ds = self.circle_ds.assign(
-            D=(["alt"], D.values, D_attrs)
+            D=([alt_dim], D.values, D_attrs)
         )
         return self
     
-    def get_vorticity(self):
+    def get_vorticity(self, alt_dim="alt"):
         vor = self.circle_ds.dvdx - self.circle_ds.dudy
 
         vor_attrs = {
@@ -238,11 +238,11 @@ class Circle:
             "units": "s-1",
         }
         self.circle_ds = self.circle_ds.assign(
-            vor=(["alt"], vor.values, vor_attrs)
+            vor=([alt_dim], vor.values, vor_attrs)
         )
         return self
 
-    def get_density(self, sonde_dim="sonde_id"):
+    def get_density(self, sonde_dim="sonde_id", alt_dim="alt"):
         density = hp.density(
             self.circle_ds.p,
             self.circle_ds.ta,
@@ -262,7 +262,7 @@ class Circle:
             dict(
                 density=(self.circle_ds.ta.dims, density.values, density_attrs),
                 mean_density=(
-                    ["alt"],
+                    [alt_dim],
                     density.mean(sonde_dim).values,
                     mean_density_attrs,
                 ),
@@ -270,27 +270,32 @@ class Circle:
         )
         return self
 
-    def get_vertical_velocity(self):
-        div = self.circle_ds.div.where(~np.isnan(self.circle_ds.div), drop=True).sortby(
+    def get_vertical_velocity(self, alt_dim="alt"):
+        D = self.circle_ds.D.where(~np.isnan(self.circle_ds.D), drop=True).sortby(
             "alt"
         )
-        zero_vel = xr.DataArray(data=[0], dims="alt", coords={"alt": [0]})
+        zero_vel = xr.DataArray(data=[0], dims=alt_dim, coords={alt_dim: [0]})
 
-        height = xr.concat([zero_vel, div["alt"]], dim="alt")
-        height_diff = height.diff(dim="alt")
+        height = xr.concat([zero_vel, D[alt_dim]], dim=alt_dim)
+        height_diff = height.diff(dim=alt_dim)
 
-        del_w = -div * height_diff.values
+        del_w = - D * height_diff.values
 
-        w_vel = del_w.cumsum(dim="alt")
+        w_vel = del_w.cumsum(dim=alt_dim)
         w_vel_attrs = {
             "standard_name": "upward_air_velocity",
             "long_name": "Area-averaged vertical air velocity",
-            "units": w_vel.units,
+            "units": "m s-1",
         }
         self.circle_ds = self.circle_ds.assign(
-            w_vel=(["alt"], w_vel.values, w_vel_attrs)
+            w_vel=([alt_dim], w_vel.values, w_vel_attrs)
         )
 
+        import matplotlib.pyplot as plt
+
+        plt.plot(self.circle_ds.w_vel)
+        plt.show()
+        print(self.circle_ds)
         return self
 
     def get_omega(self):
