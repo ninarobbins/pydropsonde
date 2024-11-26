@@ -217,8 +217,20 @@ class Circle:
         self.circle_ds = ds
         return self
 
-    def get_div_and_vor(self):
+    def get_divergence(self):
         D = self.circle_ds.dudx + self.circle_ds.dvdy
+        D_attrs = {
+            "standard_name": "divergence_of_wind",
+            "long_name": "Area-averaged horizontal mass divergence",
+            "units": "m-1",
+        }
+        self.circle_ds = self.circle_ds.assign(
+            D=(["alt"], D.values, D_attrs)
+        )
+        print(self.circle_ds)
+        return self
+    
+    def get_vorticity(self):
         vor = self.circle_ds.dvdx - self.circle_ds.dudy
 
         vor_attrs = {
@@ -226,14 +238,10 @@ class Circle:
             "long_name": "Area-averaged horizontal relative vorticity",
             "units": "s-1",
         }
-        D_attrs = {
-            "standard_name": "divergence_of_wind",
-            "long_name": "Area-averaged horizontal mass divergence",
-            "units": "m-1",
-        }
         self.circle_ds = self.circle_ds.assign(
-            dict(D=(["alt"], D.values, D_attrs), vor=(["alt"], vor.values, vor_attrs))
+            vor=(["alt"], vor.values, vor_attrs)
         )
+        print(self.circle_ds)
         return self
 
     def get_density(self, sonde_dim="sonde_id"):

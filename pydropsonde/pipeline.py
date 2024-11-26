@@ -578,7 +578,8 @@ pipeline = {
     "calculate_circle_data": {
         "intake": "circles",
         "apply": iterate_Circle_method_over_dict_of_Circle_objects,
-        "functions": ["drop_m_N_vars", "get_xy_coords_for_circles", "apply_fit2d"],
+        "functions": ["drop_m_N_vars", "get_xy_coords_for_circles", "apply_fit2d", "get_divergence",
+                      "get_vorticity"],
         "output": "circles",
         "comment": "calculate circle products",
     },
