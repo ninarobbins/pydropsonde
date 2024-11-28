@@ -28,17 +28,15 @@ def add_ancillary_var(ds, variable, anc_name):
     return ds
 
 
-# encode and write files
-def get_chunks(ds, var, object_dim="sonde_id", alt_dim="alt"):
-    """
-    get standard chunks for one object_dim (like sonde_id or circle_id) and one height dimension
-    """
-    chunks = {
-        object_dim: min(256, ds.sonde_id.size),
-        alt_dim: min(400, ds[alt_dim].size),
-    }
+def get_chunks(ds, var, object_dims=("sonde_id", "circle_id"), alt_dim="alt"):
+    
+    chunks = {alt_dim: min(400, ds[alt_dim].size) if alt_dim in ds.dims else None}
 
-    return tuple((chunks[d] for d in ds[var].dims))
+    for dim in object_dims:
+        if dim in ds.dims:
+            chunks[dim] = min(256, ds[dim].size)
+
+    return tuple(chunks.get(dim, min(256, ds[dim].size)) for dim in ds[var].dims)
 
 
 def get_target_dtype(ds, var):
