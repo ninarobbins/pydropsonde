@@ -1486,7 +1486,7 @@ class Sonde:
             ds=ds,
             dir=self.interim_l3_dir,
             filename=self.interim_l3_filename,
-            object_dim="sonde_id",
+            object_dims="sonde_id",
             alt_dim=alt_dim,
         )
 
