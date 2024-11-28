@@ -227,6 +227,8 @@ class Circle:
 
             ds = self.circle_ds.assign(assign_dict)
         ds[alt_var].attrs.update(alt_attrs)
+        ds = ds.set_coords("circle_time")
+
         self.circle_ds = ds
         return self
 

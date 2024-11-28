@@ -117,6 +117,13 @@ l3_coords = dict(
     aircraft_msl_altitude={"long_name": "aircraft altitude at launch", "units": "m"},
 )
 
+l4_coords = dict(
+    circle_time={"long_name": "mean launch time of all sondes in circle", "time_zone": "UTC"},
+    circle_lon={"long_name": "longitude of circle center"},
+    circle_lat={"long_name": "latitude of circle center"},
+    aircraft_msl_altitude={"long_name": "aircraft altitude at launch", "units": "m"},
+)
+
 
 path_to_flight_ids = "{platform}/Level_0"
 path_to_l0_files = "{platform}/Level_0/{flight_id}"
@@ -124,6 +131,7 @@ path_to_l0_files = "{platform}/Level_0/{flight_id}"
 l2_filename_template = "{platform}_{flight_id}_{serial_id}_Level_2.nc"
 
 l3_filename = "Level_3.nc"
+l4_filename = "Level_4.nc"
 
 es_formular = mtsvp.liq_wagner_pruss
 es_name = "Wagner and Pruß 2002 (IAPWS Formulation 1995)"

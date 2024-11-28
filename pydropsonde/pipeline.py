@@ -374,7 +374,14 @@ def iterate_Circle_method_over_dict_of_Circle_objects(
 
 def sondes_to_gridded(sondes: dict, config: configparser.ConfigParser):
     global_attrs = get_global_attrs_from_config(config)
-    gridded = Gridded(sondes, global_attrs=global_attrs)
+    gridded = Gridded(sondes=sondes, circles=None, global_attrs=global_attrs)
+    gridded.concat_sondes()
+    return gridded
+
+def circles_to_gridded(circles: dict, config: configparser.ConfigParser):
+    global_attrs = get_global_attrs_from_config(config)
+    gridded = Gridded(circles=circles, sondes=None, global_attrs=global_attrs)
+    gridded.concat_circles()
     return gridded
 
 
@@ -614,4 +621,18 @@ pipeline = {
         "output": "circles",
         "comment": "calculate circle products",
     },
+    "concatenate_circles": {
+        "intake": "circles",
+        "apply": circles_to_gridded,
+        "output": "gridded",
+        "comment": "This step concatenates the individual circle datasets to create the L4 dataset.",
+    },
+     "create_L4": {
+        "intake": "gridded",
+        "apply": apply_method_to_dataset,
+        "functions": ["get_l4_dir", "get_l4_filename", "write_l4"],
+        "output": "gridded",
+        "comment": "This step creates the L4 dataset after adding additional products.",
+    },
+
 }
