@@ -378,6 +378,7 @@ def sondes_to_gridded(sondes: dict, config: configparser.ConfigParser):
     gridded.concat_sondes()
     return gridded
 
+
 def circles_to_gridded(circles: dict, config: configparser.ConfigParser):
     global_attrs = get_global_attrs_from_config(config)
     gridded = Gridded(circles=circles, sondes=None, global_attrs=global_attrs)
@@ -627,12 +628,11 @@ pipeline = {
         "output": "gridded",
         "comment": "This step concatenates the individual circle datasets to create the L4 dataset.",
     },
-     "create_L4": {
+    "create_L4": {
         "intake": "gridded",
         "apply": apply_method_to_dataset,
         "functions": ["get_l4_dir", "get_l4_filename", "write_l4"],
         "output": "gridded",
         "comment": "This step creates the L4 dataset after adding additional products.",
     },
-
 }
