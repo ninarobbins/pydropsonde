@@ -29,7 +29,6 @@ def add_ancillary_var(ds, variable, anc_name):
 
 
 def get_chunks(ds, var, object_dims=("sonde_id", "circle_id"), alt_dim="alt"):
-    
     chunks = {alt_dim: min(400, ds[alt_dim].size) if alt_dim in ds.dims else None}
 
     for dim in object_dims:

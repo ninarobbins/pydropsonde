@@ -1094,7 +1094,6 @@ class Sonde:
         ).sortby("time")
         object.__setattr__(self, "_prep_l3_ds", _prep_l3_ds)
         return self
-    
 
     def check_interim_l3(
         self, interim_l3_dir: str = None, interim_l3_filename: str = None
@@ -1565,16 +1564,13 @@ class Gridded:
 
         self._interim_l3_ds = ds
         return self
-    
 
     def concat_circles(self, sortby=None):
         if sortby is None:
             sortby = list(hh.l4_coords.keys())[0]
 
         list_of_circle_ds = [
-            circle.circle_ds.assign_coords(
-                circle_id=circle_id
-            ).expand_dims("circle_id")
+            circle.circle_ds.assign_coords(circle_id=circle_id).expand_dims("circle_id")
             for circle_id, circle in self.circles.items()
         ]
 
@@ -1752,7 +1748,7 @@ class Gridded:
         self.flight_ids = flight_ids
 
         return self
-    
+
     def get_l4_dir(self, l4_dir: str = None):
         if l4_dir:
             self.l4_dir = l4_dir
@@ -1776,7 +1772,6 @@ class Gridded:
         self.l4_filename = l4_filename
         return self
 
-
     def write_l4(self, l4_dir: str = None, _interim_l4_ds: xr.Dataset = None):
         if l4_dir is None:
             l4_dir = self.l4_dir
@@ -1789,12 +1784,12 @@ class Gridded:
         )
         object.__setattr__(self, "history", history)
         ds.attrs.update({"history": history})
-        
+
         hx.write_ds(
             ds=ds,
             dir=l4_dir,
             filename=self.l4_filename,
-            object_dims=("sonde_id","circle_id"),
+            object_dims=("sonde_id", "circle_id"),
             alt_dim="alt",
         )
         return self
