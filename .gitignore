@@ -51,4 +51,5 @@ _version.py
 # Level 2 - 4
 example_data/**/Level_2/*
 example_data/**/Level_3/*
+example_data/**/Level_4/*
 **/*_interim*
