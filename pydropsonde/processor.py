@@ -844,7 +844,7 @@ class Sonde:
             ds=ds,
             dir=l2_dir,
             filename=self.l2_filename,
-            object_dims="sonde_id",
+            object_dims=("sonde_id",),
             alt_dim="time",
         )
         return self
@@ -1362,7 +1362,7 @@ class Sonde:
             ds=ds,
             dir=self.interim_l3_dir,
             filename=self.interim_l3_filename,
-            object_dim="sonde_id",
+            object_dims=("sonde_id",),
             alt_dim=self.alt_dim,
         )
 
@@ -1569,7 +1569,7 @@ class Gridded:
             ds=self.concat_sonde_ds,
             dir=l3_dir,
             filename=self.l3_filename,
-            object_dim="sonde_id",
+            object_dims=("sonde_id",),
             alt_dim=self.alt_dim,
         )
         return self
