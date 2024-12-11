@@ -1934,7 +1934,7 @@ class Gridded:
             for platform_id in platform_ids
             for flight_id in flight_ids
             for s in segmentation.get(platform_id, {})
-            .get(flight_id, {})
+            .get(f"{platform_id}-{flight_id}a", {})
             .get("segments", [])
             if "circle" in s["kinds"]
         ]
