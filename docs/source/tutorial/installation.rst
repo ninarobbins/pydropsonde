@@ -1,24 +1,26 @@
 Installation
 ============
 
-For now, ``pydropsonde`` is not a ``pip`` or ``conda`` package.
-You can either clone the repository by
+Currently, there are two ways to install the package.
 
-.. code-block:: bash
+#. ``pydropsonde`` is available via `PyPI <https://pypi.org/project/pydropsonde/>`_ such that you can directly install the package with ``pip``
 
-        git clone git@github.com:atmdrops/pydropsonde.git
+   .. code-block:: bash
+
+       pip install pydropsonde
 
 
-and create a respective python environment with ``conda`` from the base folder directory:
+#. Alternatively, you can clone the repository by
 
-.. code-block:: bash
+   .. code-block:: bash
 
-    conda env create -f environment.yaml
+           git clone git@github.com:atmdrops/pydropsonde.git
 
-This will install ``pydropsonde`` in development mode.
 
-Alternatively, you can directly install the package with ``pip``
+   and create a respective python environment with ``conda`` from the base folder directory:
 
-.. code-block:: bash
+   .. code-block:: bash
 
-    pip install pydropsonde
+       conda env create -f environment.yaml
+
+   This will install ``pydropsonde`` in development mode.

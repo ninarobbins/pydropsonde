@@ -54,7 +54,7 @@ enable = true
 vcs = "git"
 
 [tool.poetry.scripts]
-pydropsonde = 'pydropsonde:main'
+pydropsonde = 'pydropsonde.main:main'
 
 [tool.poetry-dynamic-versioning.files."pydropsonde/_version.py"]
 persistent-substitution = true
