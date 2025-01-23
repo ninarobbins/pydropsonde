@@ -3,6 +3,7 @@ import numpy as np
 import xarray as xr
 import circle_fit as cf
 import pydropsonde.helper.physics as hp
+import pydropsonde.helper.xarray_helper as hx
 
 _no_default = object()
 
@@ -307,6 +308,79 @@ class Circle:
         ds[alt_var].attrs.update(alt_attrs)
 
         self.circle_ds = ds
+        return self
+
+    def add_regression_stderr(self, variables=None):
+        """
+        Calculation of regression standard error, following Lenschow, Donald H and Savic-Jovcic,Verica and Stevens, Bjorn 2007
+
+        """
+        alt_dim = self.alt_dim
+        sonde_dim = self.sonde_dim
+        if variables is None:
+            variables = ["u", "v", "q", "ta", "p"]
+        ds = self.circle_ds
+
+        dx_denominator = ((ds.x - ds.x.mean(dim=sonde_dim)) ** 2).sum(dim=sonde_dim)
+        dy_denominator = ((ds.y - ds.y.mean(dim=sonde_dim)) ** 2).sum(dim=sonde_dim)
+
+        for var in variables:
+            var_err = (
+                ds[var]
+                - (ds[f"mean_{var}"] + ds[f"d{var}dx"] * ds.x + ds[f"d{var}dy"] * ds.y)
+            ) ** 2
+            nominator = (var_err.sum(dim=sonde_dim)) / (
+                var_err.count(dim=sonde_dim) - 3
+            )
+
+            se_x = np.sqrt(nominator / dx_denominator)
+            se_y = np.sqrt(nominator / dy_denominator)
+
+            dvardx_std_name = ds[f"d{var}dx"].attrs.get(
+                "standard_name", f"derivative_of_{var}_wrt_x"
+            )
+            unit = ds[f"d{var}dx"].attrs.get("units", "")
+            dvardy_std_name = ds[f"d{var}dy"].attrs.get(
+                "standard_name", f"derivative_of_{var}_wrt_y"
+            )
+
+            ds = ds.assign(
+                {
+                    f"se_d{var}dx": (
+                        [alt_dim],
+                        (se_x.where(~np.isnan(ds[f"d{var}dx"])).values),
+                        dict(
+                            standard_name=f"{dvardx_std_name} standard_error",
+                            units=unit,
+                        ),
+                    ),
+                    f"se_d{var}dy": (
+                        [alt_dim],
+                        (se_y.where(~np.isnan(ds[f"d{var}dy"])).values),
+                        dict(
+                            standard_name=f"{dvardy_std_name} standard_error",
+                            units=unit,
+                        ),
+                    ),
+                }
+            )
+            ds = hx.add_ancillary_var(ds, f"d{var}dx", f"se_d{var}dx")
+            ds = hx.add_ancillary_var(ds, f"d{var}dy", f"se_d{var}dy")
+
+        div_std_name = ds["div"].attrs.get("standard_name", "divergence_of_wind")
+        ds = ds.assign(
+            {
+                "se_div": (
+                    [alt_dim],
+                    np.sqrt(ds.se_dudx**2 + ds.se_dudy**2).values,
+                    dict(standard_name=f"{div_std_name} standard_error", units=unit),
+                )
+            }
+        )
+
+        ds = hx.add_ancillary_var(ds, "div", "se_div")
+        ds = hx.add_ancillary_var(ds, "vor", "se_div")
+
         return self
 
     def add_density(self):
