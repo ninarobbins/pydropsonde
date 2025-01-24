@@ -641,6 +641,7 @@ pipeline = {
             "add_omega",
             "add_wvel",
             "add_circle_variables_to_ds",
+            "add_regression_stderr",
         ],
         "output": "gridded",
         "comment": "calculate circle products",
