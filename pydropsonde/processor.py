@@ -2195,6 +2195,41 @@ class Gridded:
             )
         return self
 
+    def get_autocorrelation_weight(self, variable):
+        autocorrelation = self.autocorrelation
+        dist = xr.where(self.distances, self.distances, 0)
+        return xr.where(
+            dist[f"{variable}_dist"] == 0,
+            1,
+            autocorrelation[f"{variable}_autocorr"]
+            .sel(altitude=dist[f"{variable}_dist"], method="nearest")
+            .values,
+        )
+
+    def get_no_change_weights(self, variable):
+        one_array = xr.ones_like(self.interim_l4_ds[variable])
+        one_array.name = f"{variable}_weights"
+        return one_array
+
+    def add_weights(self, method="autocorrelation"):
+        w = []
+        for var in ["u", "v", "p", "theta", "q", "rh", "ta"]:
+            if method == "autocorrelation":
+                weights = self.get_autocorrelation_weight(variable=var).transpose(
+                    self.sonde_dim, self.alt_dim
+                )
+            elif method == "no_weights":
+                weights = self.get_no_change_weights(variable=var)
+            weights = weights.clip(0, 1)
+            weights.name = f"{var}_weights"
+            w.append(weights)
+
+        self.weights = xr.merge(w, join="exact", compat="no_conflicts")
+        self.interim_l4_ds = xr.merge(
+            [self.interim_l4_ds, self.weights], join="exact", compat="no_conflicts"
+        )
+        return self
+
     def get_simple_circle_times_from_yaml(self, yaml_file: str = None):
         """
         Extracts circle times and related information from a simplified YAML file.

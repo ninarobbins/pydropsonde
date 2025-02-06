@@ -219,30 +219,35 @@ class Circle:
         return self
 
     @staticmethod
-    def fit2d(x, y, u):
+    def fit2d(x, y, u, weight=1):
+        weight = np.asarray(weight)
         a = np.stack([np.ones_like(x), x, y], axis=-1)
 
         invalid = np.isnan(u) | np.isnan(x) | np.isnan(y)
         # remove values where fewer than 6 sondes are present. Depending on the application, this might be changed.
         under_constraint = np.sum(~invalid, axis=-1) < 6
-        u_cal = np.where(invalid, 0, u)
         a[invalid] = 0
+        sqw = np.where(invalid, 0, np.sqrt(weight))
+        wa = sqw[..., np.newaxis] * a
+        u_cal = sqw * np.where(invalid, 0, u)
 
-        a_inv = np.linalg.pinv(a)
+        a_inv = np.linalg.pinv(wa)
         intercept, dux, duy = np.einsum("...rm,...m->r...", a_inv, u_cal)
+
         intercept[under_constraint] = np.nan
         dux[under_constraint] = np.nan
         duy[under_constraint] = np.nan
-
         return intercept, dux, duy
 
-    def fit2d_xr(self, x, y, u, sonde_dim="sonde"):
+    def fit2d_xr(self, x, y, u, weight, sonde_dim="sonde"):
         return xr.apply_ufunc(
             self.__class__.fit2d,  # Call the static method without passing `self`
             x,
             y,
             u,
+            weight,
             input_core_dims=[
+                [sonde_dim],
                 [sonde_dim],
                 [sonde_dim],
                 [sonde_dim],
@@ -273,11 +278,16 @@ class Circle:
                 "derivative_of_" + standard_name + "_wrt_x",
                 "derivative_of_" + standard_name + "_wrt_y",
             ]
+            try:
+                weight = self.circle_ds[f"{par}_weights"]
+            except KeyError:
+                weight = xr.ones_like(self.circle_ds[par])
 
             results = self.fit2d_xr(
                 x=self.circle_ds.x,
                 y=self.circle_ds.y,
                 u=self.circle_ds[par],
+                weight=weight,
                 sonde_dim=self.sonde_dim,
             )
 
