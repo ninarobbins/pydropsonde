@@ -247,6 +247,17 @@ class Circle:
 
         return self
 
+    def mask_sonde(self, sonde_id=0):
+        ds = self.circle_ds
+        alt_mask = np.full(ds.u.shape, True)
+        alt_mask[int(sonde_id), :] = False
+
+        for var in ["u", "v", "rh", "q", "ta", "theta", "x", "y"]:
+            self.circle_ds = self.circle_ds.assign(
+                {var: (ds[var].dims, ds[var].where(alt_mask).values, ds[var].attrs)}
+            )
+        return self
+
     @staticmethod
     def fit2d(x, y, u, weight=1):
         weight = np.asarray(weight)
