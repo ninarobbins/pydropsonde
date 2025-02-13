@@ -380,7 +380,55 @@ class Circle:
 
         ds = hx.add_ancillary_var(ds, "div", "se_div")
         ds = hx.add_ancillary_var(ds, "vor", "se_div")
+        se_div_nona = ds.se_div.dropna(dim=alt_dim)
+        wvel_std_name = ds["wvel"].attrs.get("standard_name", "upward_air_velocity")
+        ds = ds.assign(
+            {
+                "se_wvel": (
+                    ds.se_div.dims,
+                    (
+                        np.sqrt((se_div_nona**2).cumsum(dim=alt_dim))
+                        * se_div_nona[alt_dim].diff(dim=alt_dim)
+                    )
+                    .broadcast_like(ds.se_div)
+                    .values,
+                    dict(
+                        standard_name=f"{wvel_std_name} standard_error",
+                        units=ds["wvel"].attrs.get("units", "m s-1"),
+                    ),
+                )
+            }
+        )
+        ds = hx.add_ancillary_var(ds, "wvel", "se_wvel")
 
+        omega_std_name = ds["omega"].attrs.get(
+            "standard_name", "vertical_air_velocity_expressed_as_tendency_of_pressure"
+        )
+
+        ds = ds.assign(
+            {
+                "se_omega": (
+                    ds.se_div.dims,
+                    (
+                        np.sqrt((se_div_nona**2).cumsum(dim=alt_dim))
+                        * ds.mean_p.sel({alt_dim: se_div_nona[alt_dim]}).diff(
+                            dim=alt_dim
+                        )
+                    )
+                    .broadcast_like(ds.se_div)
+                    .values
+                    * 0.01
+                    * 60**2,
+                    dict(
+                        standard_name=f"{omega_std_name} standard_error",
+                        units=ds["omega"].attrs.get("units", "hPa hr-1"),
+                    ),
+                )
+            }
+        )
+        ds = hx.add_ancillary_var(ds, "omega", "se_omega")
+
+        self.circle_ds = ds
         return self
 
     def add_density(self):
