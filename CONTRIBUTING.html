@@ -1,0 +1,575 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Contributing &#8212; pydropsonde  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'CONTRIBUTING';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="pydropsonde.processor" href="_autosummary/pydropsonde.processor.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">pydropsonde  documentation</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="tutorial/index.html">Getting Started</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/configs.html">Config Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/run.html">Running pydropsonde</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="data/index.html">Data</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="data/level0.html">Level 0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data/level1.html">Level_1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data/level2.html">Level 2 (default)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data/level3.html">Level 3 (default)</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="api.html">API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="_autosummary/pydropsonde.html">pydropsonde</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/pydropsonde.circles.html">pydropsonde.circles</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="_autosummary/pydropsonde.helper.html">pydropsonde.helper</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="_autosummary/pydropsonde.helper.paths.html">pydropsonde.helper.paths</a></li>
+<li class="toctree-l4"><a class="reference internal" href="_autosummary/pydropsonde.helper.physics.html">pydropsonde.helper.physics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="_autosummary/pydropsonde.helper.quality.html">pydropsonde.helper.quality</a></li>
+<li class="toctree-l4"><a class="reference internal" href="_autosummary/pydropsonde.helper.rawreader.html">pydropsonde.helper.rawreader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="_autosummary/pydropsonde.helper.xarray_helper.html">pydropsonde.helper.xarray_helper</a></li>
+</ul>
+</details></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/pydropsonde.main.html">pydropsonde.main</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/pydropsonde.pipeline.html">pydropsonde.pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/pydropsonde.processor.html">pydropsonde.processor</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Contributing</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/CONTRIBUTING.rst" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.rst</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Contributing</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-can-you-help-us">How can you help us?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#development-workflow">Development Workflow</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#adding-dependencies">Adding dependencies</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation-development">Documentation development</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#steps-to-make-documentation-changes">Steps to make documentation changes</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="contributing">
+<h1>Contributing<a class="headerlink" href="#contributing" title="Link to this heading">#</a></h1>
+<p>Firstly, thanks for thinking of contributing to <code class="docutils literal notranslate"><span class="pre">pydropsonde</span></code>; we are hoping that you didn’t land here by mistake. But even if you did, now that you are here why not help us out a bit with this package? There are <a class="reference internal" href="#how-help-us">different ways</a> in which you can contribute to pydropsonde. To know how to get started, jump to <a class="reference internal" href="#dev-workflow"><span class="std std-ref">Development Workflow</span></a>.</p>
+<section id="how-can-you-help-us">
+<span id="how-help-us"></span><h2>How can you help us?<a class="headerlink" href="#how-can-you-help-us" title="Link to this heading">#</a></h2>
+<p>You can help us by:</p>
+<ul class="simple">
+<li><p>Submitting issues
+- Tell us about any bugs you encounter, enhancements or features that you think the package should include, or even things like some missing documentation that might be useful to you and others. Simply raise an <a class="reference external" href="https://github.com/atmdrops/pydropsonde/issues">Issue</a>! Even if you are not sure if something qualifies as an issue, just raise an issue anyway. Worst case, someone will point out the solution or you might figure it out yourself and help out someone in the future facing the same problem. It’s a win-win.</p></li>
+<li><p>Documenting
+- A large and very important part of <code class="docutils literal notranslate"><span class="pre">pydropsonde</span></code> is the documentation that goes with it. This includes the protocols for operations and data processing as well as the explanations behind them. We also need how-to guides to explain better how the package can be employed. And there are functions and classes that can benefit from better docstrings. In fact, this very document <code class="docutils literal notranslate"><span class="pre">CONTRIBUTING.md</span></code> needs more documentation. There is almost never enough documentation. So, pick out a small aspect of the <code class="docutils literal notranslate"><span class="pre">pydropsonde</span></code> docs and try your hand at it. The universe will thank you. Just try it.</p></li>
+<li><p>Coding
+- Scripts, classes, methods, tests… A lot remains to be done in the package.</p></li>
+</ul>
+<p>Have a look at the <a class="reference external" href="https://github.com/atmdrops/pydropsonde/issues">Issues</a> and you will find where <code class="docutils literal notranslate"><span class="pre">pydropsonde</span></code> needs help. Pick an issue and assign it to yourself, so others know that you are working on that. If you are not sure how to proceed, you can express your interest by commenting on the issue, and someone should help you out.</p>
+</section>
+<section id="development-workflow">
+<span id="dev-workflow"></span><h2>Development Workflow<a class="headerlink" href="#development-workflow" title="Link to this heading">#</a></h2>
+<ol class="arabic">
+<li><p><strong>Fork &amp; clone pydropsonde</strong></p>
+<blockquote>
+<div><p>Fork the <a class="reference external" href="https://github.com/atmdrops/pydropsonde.git">pydropsonde</a> repository.</p>
+<p>Clone your fork and set the original repository to remote upstream with the following commands:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:&lt;your-github-username&gt;/pydropsonde.git
+<span class="nb">cd</span><span class="w"> </span>pydropsonde
+git<span class="w"> </span>remote<span class="w"> </span>add<span class="w"> </span>upstream<span class="w"> </span>git@github.com:atmdrops/pydropsonde.git
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p><strong>Create the development environment</strong></p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">pydropsonde</span></code> is developed in Python. The packages needed for development is specified in the <cite>environment.yaml</cite> file. The package manager <a class="reference external" href="https://conda.io/">conda</a> can be used to create an environment from the file.
+Be sure you are in the <code class="docutils literal notranslate"><span class="pre">pydropsonde</span></code> home directory, i.e. the location of the <cite>pyproject.toml</cite> file. This will ensure the <code class="docutils literal notranslate"><span class="pre">pip</span></code> editable installation of the <code class="docutils literal notranslate"><span class="pre">pydropsonde</span></code> package within the environment itself.</p>
+<p>So, if you are in the right directory, let’s create the environment.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>env<span class="w"> </span>create<span class="w"> </span>-f<span class="w"> </span>environment.yml
+</pre></div>
+</div>
+<p>Activate the environment with:
+.. code-block:: bash</p>
+<blockquote>
+<div><p>conda activate pydropsonde_env</p>
+</div></blockquote>
+<p><strong>_Get pre-commit working for you_</strong></p>
+<p>If you created the environment with the <code class="docutils literal notranslate"><span class="pre">environment.yaml</span></code> file, then <code class="docutils literal notranslate"><span class="pre">pre-commit</span></code> should already be present in your environment. <code class="docutils literal notranslate"><span class="pre">pre-commit</span></code> is used to employ hooks for checking (and in some cases, fixing) the code before commits are made. To get pre-commit to check automatically every time you commit, use the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pre-commit<span class="w"> </span>install
+</pre></div>
+</div>
+<p>That’s it.  <code class="docutils literal notranslate"><span class="pre">pre-commit</span></code> will now parse through all hooks in the <code class="docutils literal notranslate"><span class="pre">.pre-commit-config.yaml</span></code> file and do its thing accordingly.</p>
+<p>Every time there is a change in the config YAML file, be sure to apply those changes for all existing files too with the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pre-commit<span class="w"> </span>run<span class="w"> </span>--all-files
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p><strong>Create a branch</strong></p>
+<blockquote>
+<div><p>Now we have a local copy of our fork and we have the environment ready to start developing.</p>
+<p>It is always good coding practice to work on a different branch every time you start working on a new feature / bug-fix (yes, despite having your own fork).</p>
+<p>Create a branch and checkout to start working on it.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>branch<span class="w"> </span>my-new-feature
+git<span class="w"> </span>checkout<span class="w"> </span>my-new-feature
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p><strong>Make your changes</strong></p>
+<blockquote>
+<div><p>Do your edits and push to your fork. Behold git’s holy trinity!</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>add<span class="w"> </span>.<span class="w"> </span><span class="c1"># will add all uncommitted changes</span>
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;your commit message here&quot;</span><span class="w"> </span><span class="c1"># consider giving a detailed message &amp; not simply a header</span>
+git<span class="w"> </span>push<span class="w"> </span><span class="c1"># for the first push of a branch, track it e.g. git push -u origin my-new-feature</span>
+</pre></div>
+</div>
+<p>Every commit makes changes that are justified by one reason. The size of a commit could be a single character change or a change in thousands of lines across millions of files. But the reason behind the commit should ideally be as solitary as possible. Commit often, but not too often. Henry VIII said that.</p>
+<p>For making changes to the documentation, refer the <a class="reference internal" href="#dokudev"><span class="std std-ref">Documentation development</span></a> section for steps.</p>
+</div></blockquote>
+</li>
+<li><p><strong>Submit pull request</strong></p>
+<blockquote>
+<div><p>Head over to Github and from the relevant branch in your fork, create a <a class="reference external" href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests">Pull Request (PR)</a>.</p>
+<p>You can <a class="reference external" href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/requesting-a-pull-request-review">request a PR review</a> from someone. They will help with some feedback or might wholeheartedly agree with your changes. Others might also comment with their opinion. Add any necessary changes with subsequent commits to the same branch. Once everyone involved in this conversation is satisfied, the PR is merged. From personal experience though, frantically refreshing the browser every three seconds doesn’t speed up the response rate of others. Sometimes, PRs can take their own sweet time.</p>
+</div></blockquote>
+</li>
+<li><p><strong>… And that’s it! Thanks for helping</strong></p></li>
+</ol>
+</section>
+<section id="adding-dependencies">
+<h2>Adding dependencies<a class="headerlink" href="#adding-dependencies" title="Link to this heading">#</a></h2>
+<dl class="simple">
+<dt>Currently, pyDropsonde is build with <a class="reference external" href="https://python-poetry.org/">poetry</a>. If you need a new package for your contribution, please remember to</dt><dd><ul class="simple">
+<li><p>add it to the <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code></p></li>
+<li><p>create a new <code class="docutils literal notranslate"><span class="pre">poetry.lock</span></code> (see the <a class="reference external" href="https://python-poetry.org/docs/basic-usage/#installing-with-poetrylock">poetry descriptions</a>)</p></li>
+<li><p>add it to the <code class="docutils literal notranslate"><span class="pre">environment.yaml</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="documentation-development">
+<span id="dokudev"></span><h2>Documentation development<a class="headerlink" href="#documentation-development" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">pydropsonde</span></code> uses <a class="reference external" href="https://www.sphinx-doc.org/en/master/index.html">Sphinx</a> with the <a class="reference external" href="https://sphinx-book-theme.readthedocs.io/en/stable/">Book theme</a> to display its documentation, and is hosted by <a class="reference external" href="https://pages.github.com/">Github pages</a>. All documentation comes from rsStructuredText  files or Jupyter notebooks, except the API reference, which is built automatically from the docstrings in the modules, thanks to <a class="reference external" href="https://www.sphinx-doc.org/en/master/usage/extensions/autosummary.html">sphinx-autosummary</a>.</p>
+</section>
+<section id="steps-to-make-documentation-changes">
+<h2>Steps to make documentation changes<a class="headerlink" href="#steps-to-make-documentation-changes" title="Link to this heading">#</a></h2>
+<ol class="arabic">
+<li><p>You’ll find the source files for documentation in the <code class="docutils literal notranslate"><span class="pre">docs/source/</span></code> directory. If you want to change documentation in the API reference, then head over to the corresponding module in the source code and change the relevant docstring.</p></li>
+<li><p>Make the change. Here are some referencing tips for both Markdown files and for docstrings.</p>
+<ul>
+<li><dl>
+<dt>For cross-referencing within the document, use</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span>:ref:`section_label`
+</pre></div>
+</div>
+<p>for example, <code class="docutils literal notranslate"><span class="pre">:ref:`dokudev`</span></code> in the source code will give you the following link: <a class="reference internal" href="#dokudev"><span class="std std-ref">Documentation development</span></a>. This works because the section <a class="reference internal" href="#dokudev"><span class="std std-ref">Documentation development</span></a> is tagged with the label <code class="docutils literal notranslate"><span class="pre">dokudev</span></code> in the source code, which is done by adding the line <code class="docutils literal notranslate"><span class="pre">..</span> <span class="pre">_dokudev:</span></code> at the beginning of the section.
+If you want to add some custom text to your reference, you can do so by adding the text in the following way: <code class="docutils literal notranslate"><span class="pre">`New</span> <span class="pre">Fancy</span> <span class="pre">Text</span> <span class="pre">&lt;dokudev_&gt;`_</span></code>. This will give you the following link: <a class="reference internal" href="#dokudev">New Fancy Text</a>, i.e. the text <code class="docutils literal notranslate"><span class="pre">New</span> <span class="pre">Fancy</span> <span class="pre">Text</span></code> will be displayed, but the link will still point to the section with the label <code class="docutils literal notranslate"><span class="pre">dokudev</span></code>.</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>For cross-referencing a different document, use</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span>:doc:`description &lt;path/to/file&gt;`
+</pre></div>
+</div>
+<p>for example, <code class="docutils literal notranslate"><span class="pre">:doc:`landing</span> <span class="pre">&lt;index&gt;`</span></code> will give you the following link: <a class="reference internal" href="index.html"><span class="doc">landing</span></a>. This works because the file <code class="docutils literal notranslate"><span class="pre">index.rst</span></code> is in the same directory as the file you are referencing from. If the file is in a different directory, you need to specify the path to the file relative to the current file.</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>For URLs</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span>`description &lt;url&gt;`_
+</pre></div>
+</div>
+<p>for example, <code class="docutils literal notranslate"><span class="pre">`github</span> <span class="pre">&lt;https://github.com/&gt;`_</span></code> will give you the following link: <a class="reference external" href="https://github.com/">github</a>. Note that the URL will open in the same tab.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</li>
+<li><p>Rebuild the documentation with:</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sphinx-build<span class="w"> </span>-n<span class="w"> </span>docs/source<span class="w"> </span>docs/_build
+</pre></div>
+</div>
+<p>The <cite>-n</cite> flag is to enable <a class="reference external" href="https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-nitpicky">nitpicky mode</a>, so that we catch all warnings with missing references.</p>
+<p>When you open a pull request and merge into the <cite>main</cite> branch, the documentation will be built automatically and deployed to <a class="reference external" href="https://atmdrops.github.io/pydropsonde/">https://atmdrops.github.io/pydropsonde/</a>.</p>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="_autosummary/pydropsonde.processor.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">pydropsonde.processor</p>
+      </div>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-can-you-help-us">How can you help us?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#development-workflow">Development Workflow</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#adding-dependencies">Adding dependencies</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation-development">Documentation development</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#steps-to-make-documentation-changes">Steps to make documentation changes</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Geet George, Helene Gloeckner, Theresa Mieslinger, Nina Robbins
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2024, Geet George, Helene Gloeckner, Theresa Mieslinger, Nina Robbins.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
