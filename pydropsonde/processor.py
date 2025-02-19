@@ -2147,6 +2147,11 @@ class Gridded:
             self.set_l3_ds(hx.open_dataset(l3_dir))
         return self
 
+    def create_interim_l4(self):
+        self.interim_l4_ds = self.l3_ds
+
+        return self
+
     def get_simple_circle_times_from_yaml(self, yaml_file: str = None):
         """
         Extracts circle times and related information from a simplified YAML file.
