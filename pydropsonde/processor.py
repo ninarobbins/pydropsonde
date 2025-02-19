@@ -15,6 +15,7 @@ import pydropsonde.helper as hh
 from pydropsonde.helper.quality import QualityControl
 import pydropsonde.helper.xarray_helper as hx
 import pydropsonde.helper.rawreader as rr
+import pydropsonde.helper.stats as hs
 from importlib.metadata import version
 
 __version__ = version("pydropsonde")
@@ -2150,6 +2151,19 @@ class Gridded:
     def create_interim_l4(self):
         self.interim_l4_ds = self.l3_ds
 
+        return self
+
+    def add_distances(self):
+        res = {}
+        for var in ["u", "v", "p", "theta", "q", "rh", "ta"]:
+            res[var] = hs.get_dist_to_nonan(
+                self.interim_l4_ds, alt_dim=self.alt_dim, variable=var
+            )
+            res[var] = xr.where(res[var], res[var], 0)
+            res[var].name = f"{var}_dist"
+        self.distances = xr.merge(res.values(), join="exact").transpose(
+            self.sonde_dim, self.alt_dim
+        )
         return self
 
     def get_simple_circle_times_from_yaml(self, yaml_file: str = None):
