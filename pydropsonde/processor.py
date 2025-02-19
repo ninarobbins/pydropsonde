@@ -17,6 +17,7 @@ import pydropsonde.helper.xarray_helper as hx
 import pydropsonde.helper.rawreader as rr
 import pydropsonde.helper.stats as hs
 from importlib.metadata import version
+from pathlib import Path
 
 __version__ = version("pydropsonde")
 
@@ -2164,6 +2165,34 @@ class Gridded:
         self.distances = xr.merge(res.values(), join="exact").transpose(
             self.sonde_dim, self.alt_dim
         )
+        return self
+
+    def add_autocorrelation(
+        self,
+        autocorr_dir=None,
+        filename="autocorrelation.zarr",
+        maxalt=10000,
+        variables=None,
+    ):
+        if autocorr_dir is None:
+            autocorr_dir = self.l3_dir
+        try:
+            self.autocorrelation = hx.open_dataset(Path(autocorr_dir, filename))
+
+        except FileNotFoundError:
+            self.autocorrelation = hs.calc_autocorrelation(
+                self.interim_l4_ds,
+                alt_dim=self.alt_dim,
+                maxalt=maxalt,
+                variables=variables,
+            )
+            hx.write_ds(
+                self.autocorrelation,
+                dir=autocorr_dir,
+                filename=filename,
+                alt_dim=self.alt_dim,
+                object_dims=("sonde",),
+            )
         return self
 
     def get_simple_circle_times_from_yaml(self, yaml_file: str = None):
