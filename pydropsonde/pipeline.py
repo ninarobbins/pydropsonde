@@ -661,6 +661,8 @@ pipeline = {
             "add_omega",
             "add_wvel",
             "add_circle_id_variable",
+            "calc_remove_sonde_manipulation",
+            "add_sonde_relevance_to_ds",
             "add_circle_variables_to_ds",
             "get_circle_flight_id",
             "add_regression_stderr",

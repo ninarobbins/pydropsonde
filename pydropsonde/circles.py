@@ -534,6 +534,55 @@ class Circle:
             self.circle_ds["iwv_mean"] = self.circle_ds["iwv_mean"].mean("altitude")
         return self
 
+    def calc_remove_sonde_manipulation(self):
+        ds = self.circle_ds.copy()
+        remove_sonde_vals = {
+            "div": [],
+            "vor": [],
+            "omega": [],
+            "wvel": [],
+        }
+        for sonde_id in ds.sonde:
+            self.get_xy_coords_for_circles()
+            self.drop_vars()
+            self.mask_sonde(sonde_id=sonde_id)
+            self.interpolate_na_sondes()
+            self.apply_fit2d()
+            self.add_divergence()
+            self.add_vorticity()
+            self.add_omega()
+            self.add_wvel()
+            for var in ["div", "vor", "omega", "wvel"]:
+                remove_sonde_vals[var].append(self.circle_ds[var])
+
+            self.circle_ds = ds.copy()
+        self.remove_sonde_ds = remove_sonde_vals
+        return self
+
+    def add_sonde_relevance_to_ds(self):
+        ds = self.circle_ds
+        for var in ["div", "vor", "omega", "wvel"]:
+            var_err = xr.concat(
+                [remove_ds - ds[var] for remove_ds in self.remove_sonde_ds[var]],
+                dim="sonde",
+            )
+            var_attr = dict(
+                long_name=f"helper variable for {var}",
+                description=f"Difference in {var} if this sonde is removed from circle before calculation",
+            )
+            ds = ds.assign(
+                {
+                    f"{var}_sonde_relevance": (
+                        (self.sonde_dim, self.alt_dim),
+                        var_err.values,
+                        var_attr,
+                    )
+                }
+            )
+            ds = hx.add_ancillary_var(ds, var, f"{var}_sonde_relevance")
+        self.circle_ds = ds
+        return self
+
     def add_density(self):
         """
         Calculate and add the density to the circle dataset.
