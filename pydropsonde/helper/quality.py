@@ -97,16 +97,15 @@ class QualityControl:
         """
         check if any measurements have been taken above the aircraft
         """
-        alt_dim = self.alt_dim
         ds = self.qc_ds
         self.qc_flags["altitude_below_aircraft"] = (
-            np.nanmax(ds[alt_dim].values) < maxalt
+            np.nanmax(ds["gpsalt"].values) < maxalt
         )
         if not self.qc_flags["altitude_below_aircraft"]:
             variables = ["lat", "lon", "gpsalt", "u", "v"]
 
             self.set_qc_ds(
-                hx.remove_above_alt(ds, variables, alt_dim=alt_dim, maxalt=maxalt)
+                hx.remove_above_alt(ds, variables, alt_dim="gpsalt", maxalt=maxalt)
             )
 
     def profile_extent(
@@ -230,6 +229,7 @@ class QualityControl:
         """
         ds = self.qc_ds
         alt_dim = self.alt_dim
+
         count_threshold = int(count_threshold)
 
         if isinstance(alt_bounds, str):
@@ -540,7 +540,7 @@ class QualityControl:
             )
 
             ds = hx.add_ancillary_var(
-                ds, "altitude", "alt_near_gpsalt alt_near_gpsalt_max_diff"
+                ds, self.alt_dim, "alt_near_gpsalt alt_near_gpsalt_max_diff"
             )
         return ds
 
@@ -611,7 +611,6 @@ class QualityControl:
         - ds_out: The output dataset with added non-variable QC data.
         """
         ds_out = self.add_alt_near_gpsalt_to_ds(ds)
-        ds_out = self.add_alt_source_to_ds(ds_out)
         ds_out = self.add_below_aircraft_to_ds(ds_out)
 
         return ds_out

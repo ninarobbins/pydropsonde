@@ -1042,6 +1042,7 @@ class Sonde:
                 os.path.join(interim_l3_dir, interim_l3_filename)
             )
             self.cont = False
+            self.alt_dim = list(self.interim_l3_ds.sizes.keys())[-1]
             return self
         else:
             return self
@@ -1207,7 +1208,7 @@ class Sonde:
         - None: Returns None if the dataset is dropped due to NaN altitude values.
         """
         alt_dim = self.alt_dim
-        ds = self.interim_l2_ds
+        ds = self.interim_l3_ds
         alt_attrs = ds[alt_dim].attrs
         if (not self.qc.qc_flags["p_sfc_physics"]) and (np.all(np.isnan(ds["gpsalt"]))):
             print(
@@ -1227,9 +1228,13 @@ class Sonde:
 
         elif alt_dim == "gpsalt":
             self.qc.qc_flags.update({"altitude_source": "gpsalt"})
-            if (not self.qc.qc_flags["u_near_surface"]) and (
-                self.qc.qc_flags["p_sfc_physics"]
-            ):
+            if (
+                (not self.qc.qc_flags["u_near_surface"])
+                or (
+                    (not self.qc.qc_flags["u_profile_extent"])
+                    and (self.qc.qc_flags["p_profile_extent"])
+                )
+            ) and (self.qc.qc_flags["p_low_physics"]):
                 ds = ds.assign({alt_dim: ds["alt"]})
                 self.qc.qc_flags.update({"altitude_source": "alt"})
             elif not self.qc.qc_flags["p_sfc_physics"]:
@@ -1244,9 +1249,10 @@ class Sonde:
                 {"altitude": ds["altitude"].sortby("time").interpolate_na(dim="time")}
             )
         ds.altitude.attrs.update(alt_attrs)
-        self.interim_l2_ds = ds
         self.alt_dim = "altitude"
         self.qc.alt_dim = "altitude"
+        self.interim_l3_ds = self.qc.add_alt_source_to_ds(ds)
+
         return self
 
     def swap_alt_dimension(self):
@@ -1666,7 +1672,7 @@ class Sonde:
                 keep = (
                     [f"{var}_qc" for var in list(self.qc.qc_by_var.keys())]
                     + list(self.qc.qc_details.keys())
-                    + ["alt_near_gpsalt", "altitude_source"]
+                    + ["alt_near_gpsalt"]
                 )
                 for variable in self.qc.qc_vars:
                     ds = self.qc.add_variable_flags_to_ds(ds, variable, details=True)
@@ -1704,8 +1710,13 @@ class Sonde:
                 )
                 keep = []
         keep = keep + ["sonde_qc"]
-        ds_qc = self.interim_l2_ds[keep].expand_dims(self.sonde_dim)
-        self.interim_l3_ds = xr.merge([ds, ds_qc])
+
+        ds = self.qc.add_alt_source_to_ds(ds)
+        ds_qc = self.interim_l2_ds[keep]  # .expand_dims(self.sonde_dim)
+        assert np.all(np.isin(ds.rh_qc - ds_qc.rh_qc, [0, 4]))
+        assert np.all(np.isin(ds.p_qc - ds_qc.p_qc, [0, 4]))
+        assert np.all(np.isin(ds.ta_qc - ds_qc.ta_qc, [0, 4]))
+        self.interim_l3_ds = xr.merge([ds, ds_qc], compat="override")
 
         return self
 
