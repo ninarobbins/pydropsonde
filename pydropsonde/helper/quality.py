@@ -132,6 +132,9 @@ class QualityControl:
         ds = self.qc_ds
         alt_dim = self.alt_dim
         variables = self.qc_vars
+        ds = ds.assign(
+            {alt_dim: ds[alt_dim].interpolate_na(dim="time", fill_value="extrapolate")}
+        )
         for variable in variables:
             no_na = ds.dropna(dim="time", subset=[variable])[alt_dim].values
             if no_na.size > 0:
