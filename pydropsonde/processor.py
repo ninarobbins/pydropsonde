@@ -1251,6 +1251,10 @@ class Sonde:
             ds = ds.assign(
                 {"altitude": ds["altitude"].sortby("time").interpolate_na(dim="time")}
             )
+        alt_attrs["long_name"] = "altitude"
+        alt_attrs["description"] = (
+            "derived from either gpsalt or alt in Level 2. See alt_source"
+        )
         ds.altitude.attrs.update(alt_attrs)
         self.alt_dim = "altitude"
         self.qc.alt_dim = "altitude"
