@@ -1229,7 +1229,10 @@ class Sonde:
         elif alt_dim == "gpsalt":
             self.qc.qc_flags.update({"altitude_source": "gpsalt"})
             if (
-                (not self.qc.qc_flags["u_near_surface"])
+                (
+                    (not self.qc.qc_flags["u_near_surface"])
+                    and (self.qc.qc_flags["p_near_surface"])
+                )
                 or (
                     (not self.qc.qc_flags["u_profile_extent"])
                     and (self.qc.qc_flags["p_profile_extent"])
