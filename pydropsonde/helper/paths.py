@@ -128,6 +128,14 @@ class Flight:
         self.afiles_list = a_files
         return a_files
 
+    def get_all_dfiles(self):
+        """Returns a list of paths to all D-files for the given directory
+        and also sets it as attribute named 'dfiles_list'
+        """
+        d_files = glob.glob(os.path.join(self.l0_dir, "D????????_??????.?"))
+        self.dfiles_list = d_files
+        return d_files
+
     def quicklooks_path(self):
         """Path to quicklooks directory
 
