@@ -22,7 +22,7 @@ def get_flight_segmentation(yaml_file: str):
     return meta
 
 
-def check_launch_detect_in_afile(a_file: "str") -> bool:
+def check_launch_detect_in_afile(a_file: Optional[str]) -> Optional[bool]:
     """Returns bool value of launch detect for a given A-file
 
     Given the path for an A-file, the function parses through the lines
@@ -40,35 +40,31 @@ def check_launch_detect_in_afile(a_file: "str") -> bool:
     bool
         True if launch is detected (1), else False (0)
     """
+    if a_file is None:
+        return None
+    else:
+        with open(a_file, "r") as f:
+            module_logger.debug(f"Opened File: {a_file=}")
+            lines = f.readlines()
 
-    with open(a_file, "r") as f:
-        module_logger.debug(f"Opened File: {a_file=}")
-        lines = f.readlines()
+            for i, line in enumerate(lines):
+                if "Launch Obs Done?" in line:
+                    line_id = i
+                    module_logger.debug(f'"Launch Obs Done?" found on line {line_id=}')
+                    break
 
-        for i, line in enumerate(lines):
-            if "Launch Obs Done?" in line:
-                line_id = i
-                module_logger.debug(f'"Launch Obs Done?" found on line {line_id=}')
-                break
-
-        return bool(int(lines[line_id].split("=")[1]))
+            return bool(int(lines[line_id].split("=")[1]))
 
 
-def get_sonde_id(a_file: "str") -> str:
-    """Returns Sonde ID for a given A-file
+def get_sonde_id(d_file: "str") -> str:
+    """Returns Sonde ID for a given D-file
 
-    Given the path for an A-file, the function parses through the lines
-    till it encounters the phrase 'Sonde ID/Type' and returns the sonde ID as a string.
-
-    The function splits the line with the aforementioned phrase at the first ':' sign.
-    It takes the succeeding string and splits it again at the first ','.
-    It then takes the preceding string, removes any whitespace on the left side and returns
-    the string as the sonde ID.
+    Given the path for an D-file, the function reads in the first line (header) and extracts the sonde ID.
 
     Parameters
     ----------
-    a_file : str
-        Path to A-file
+    d_file : str
+        Path to D-file
 
     Returns
     -------
@@ -76,33 +72,29 @@ def get_sonde_id(a_file: "str") -> str:
         Sonde ID
     """
     try:
+        with open(d_file, "r") as f:
+            module_logger.debug(f"Opened File: {d_file=}")
+            header = f.readline()
+            return header.split(" ")[2]
+    except UnboundLocalError:
+        dfile_base = os.path.basename(d_file)
+        return dfile_base.split(".")[0][1:]
+
+
+def get_sonde_rev(a_file: str | None) -> Optional[str]:
+    if a_file is not None:
         with open(a_file, "r") as f:
             module_logger.debug(f"Opened File: {a_file=}")
-            lines = f.readlines()
 
-            for i, line in enumerate(lines):
-                if "Sonde ID/Type" in line:
-                    module_logger.debug(f'"Sonde ID/Type" found on line {i=}')
-                    break
-
-            return lines[i].split(":")[1].split(",")[0].lstrip()
-    except UnboundLocalError:
-        afile_base = os.path.basename(a_file)
-        return afile_base.split(".")[0][1:]
+            for i, line in enumerate(f):
+                if "Sonde ID/Type/Rev" in line:
+                    module_logger.debug(f'"Sonde ID/Type/Rev" found on line {i=}')
+                    return line.split(":")[1].split(",")[2].lstrip()
+    else:
+        return None
 
 
-def get_sonde_rev(a_file: str) -> Optional[str]:
-    with open(a_file, "r") as f:
-        module_logger.debug(f"Opened File: {a_file=}")
-
-        for i, line in enumerate(f):
-            if "Sonde ID/Type/Rev" in line:
-                module_logger.debug(f'"Sonde ID/Type/Rev" found on line {i=}')
-                return line.split(":")[1].split(",")[2].lstrip()
-    return None
-
-
-def get_launch_time(a_file: "str") -> np.datetime64:
+def get_launch_time(a_file: str | None) -> np.datetime64:
     """Returns launch time for a given A-file
 
     Given the path for an A-file, the function parses through the lines
@@ -125,21 +117,26 @@ def get_launch_time(a_file: "str") -> np.datetime64:
         Launch time
     """
 
-    with open(a_file, "r") as f:
-        module_logger.debug(f"Opened File: {a_file=}")
-        lines = f.readlines()
+    if a_file is None:
+        return np.datetime64("NaT")
+    else:
+        with open(a_file, "r") as f:
+            module_logger.debug(f"Opened File: {a_file=}")
+            lines = f.readlines()
 
-        for i, line in enumerate(lines):
-            if "Launch Time (y,m,d,h,m,s)" in line:
-                module_logger.debug(f'"Launch Time (y,m,d,h,m,s)" found on line {i=}')
-                break
-        ltime = line.split(":", 1)[1].lstrip().rstrip()
-        format = "%Y-%m-%d, %H:%M:%S"
+            for i, line in enumerate(lines):
+                if "Launch Time (y,m,d,h,m,s)" in line:
+                    module_logger.debug(
+                        f'"Launch Time (y,m,d,h,m,s)" found on line {i=}'
+                    )
+                    break
+            ltime = line.split(":", 1)[1].lstrip().rstrip()
+            format = "%Y-%m-%d, %H:%M:%S"
 
-        return np.datetime64(datetime.strptime(ltime, format))
+            return np.datetime64(datetime.strptime(ltime, format))
 
 
-def get_spatial_coordinates_at_launch(a_file: str) -> List:
+def get_spatial_coordinates_at_launch(a_file: str | None) -> List[float]:
     """Returns spatial coordinates of sonde at launch
 
     For the provided A-file, if the sonde has detected a launch (see `check_launch_detect_in_afile` function)
@@ -196,4 +193,4 @@ def get_spatial_coordinates_at_launch(a_file: str) -> List:
             return [alt, lat, lon]
 
     else:
-        return []
+        return [np.nan, np.nan, np.nan]

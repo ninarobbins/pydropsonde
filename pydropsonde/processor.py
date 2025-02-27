@@ -142,7 +142,7 @@ class Sonde:
                 "Check if the sonde detected a launch, otherwise launch coordinates cannot be set"
             )
 
-    def add_launch_detect(self, launch_detect_bool: bool) -> None:
+    def add_launch_detect(self, launch_detect_bool: bool | None) -> None:
         """Sets bool attribute of whether launch was detected
 
         Parameters
@@ -152,7 +152,7 @@ class Sonde:
         """
         self.launch_detect = launch_detect_bool
 
-    def add_afile(self, path_to_afile: str) -> None:
+    def add_afile(self, path_to_afile: str | None) -> None:
         """Sets attribute with path to A-file of the sonde
 
         Parameters
@@ -172,22 +172,16 @@ class Sonde:
 
         Parameters:
         - l0_dir (str, optional): The directory path for Level 0 data. If not provided,
-        it defaults to the directory of 'afile'.
+        it defaults to the directory of 'D-file'.
         - l1_dir (str, optional): The directory path for Level 1 data. If not provided,
         it defaults to the Level 0 directory with 'Level_0' replaced by 'Level_1'.
         Can include a placeholder '{flight_id}' for dynamic replacement.
         - l2_dir (str, optional): The directory path for Level 2 data. If not provided,
         it defaults to the Level 0 directory with 'Level_0' replaced by 'Level_2'.
         Can include a placeholder '{flight_id}' for dynamic replacement.
-
-        Raises:
-        - ValueError: If 'afile' attribute is not present in the sonde and 'l0_dir'
-        is not provided.
         """
         if l0_dir is None:
-            if not hasattr(self, "afile"):
-                raise ValueError("No afile in sonde. Cannot continue")
-            l0_dir = os.path.dirname(self.afile)
+            l0_dir = os.path.dirname(self.dfile)
         if l1_dir is None:
             l1_dir = l0_dir.replace("Level_0", "Level_1")
         else:
@@ -237,8 +231,7 @@ class Sonde:
         """
 
         l0_dir = self.l0_dir  # os.path.dirname(self.afile)
-        aname = os.path.basename(self.afile)
-        dname = "D" + aname[1:]
+        dname = os.path.basename(self.dfile)
         l1_dir = self.l1_dir
         l1_name = dname.split(".")[0] + "QC.nc"
 
@@ -308,7 +301,7 @@ class Sonde:
             elif ds.attrs["SondeId"] == self.serial_id:
                 self.set_aspen_ds(ds)
 
-            elif self.launch_detect == "UGLY":
+            elif self.launch_detect is None:
                 warnings.warn(
                     f"I found the `SondeId` global attribute ({ds.attrs['SondeId']}) to not match with this instance's `serial_id` attribute ({self.serial_id}). This could be due to no afile for this sonde. Serial id is updated."
                 )
@@ -359,7 +352,7 @@ class Sonde:
         self.history = history
         return self
 
-    def filter_no_launch_detect(self) -> None:
+    def filter_no_launch_detect(self) -> Optional["Sonde"]:
         """
         Filter out sondes that did not detect a launch
 
@@ -387,12 +380,12 @@ class Sonde:
             If the `launch_detect` attribute does not exist.
         """
         if hasattr(self, "launch_detect"):
-            if not self.launch_detect:
+            if self.launch_detect is True or self.launch_detect is None:
+                return self
+            else:
                 print(
                     f"No launch detected for Sonde {self.serial_id}. I am not running QC checks for this Sonde."
                 )
-            else:
-                return self
         else:
             raise ValueError(
                 f"The attribute `launch_detect` does not exist for Sonde {self.serial_id}."
@@ -643,7 +636,7 @@ class Sonde:
 
     def get_flight_attributes(
         self, l2_flight_attributes_map: dict = hh.l2_flight_attributes_map
-    ) -> None:
+    ) -> "Sonde":
         """
         Gets flight attributes from the A-file and adds them to the sonde object.
 
@@ -661,23 +654,28 @@ class Sonde:
         """
         flight_attrs = {}
 
-        with open(self.afile, "r") as f:
-            lines = f.readlines()
+        if not self.afile:
+            print(
+                f"No flight attributes for sonde {self.serial_id} on {self.flight_id}"
+            )
+        else:
+            with open(self.afile, "r") as f:
+                lines = f.readlines()
 
-        for attr in l2_flight_attributes_map.keys():
-            for line_id, line in enumerate(lines):
-                if attr in line:
+            for attr in l2_flight_attributes_map.keys():
+                for line_id, line in enumerate(lines):
+                    if attr in line:
+                        break
+
+                attr = l2_flight_attributes_map.get(attr, attr)
+                try:
+                    value = lines[line_id].split("= ")[1]
+                    flight_attrs[attr] = float(value) if "AVAPS" not in attr else value
+                except UnboundLocalError:
+                    print(
+                        f"No flight attributes for sonde {self.serial_id} on {self.flight_id}"
+                    )
                     break
-
-            attr = l2_flight_attributes_map.get(attr, attr)
-            try:
-                value = lines[line_id].split("= ")[1]
-                flight_attrs[attr] = float(value) if "AVAPS" not in attr else value
-            except UnboundLocalError:
-                print(
-                    f"No flight attributes for sonde {self.serial_id} on {self.flight_id}"
-                )
-                break
         self.flight_attrs = flight_attrs
 
         return self

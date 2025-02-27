@@ -227,7 +227,7 @@ def create_and_populate_flight_object(
     config: configparser.ConfigParser,
 ) -> (dict[Platform], dict[Sonde]):
     """
-    Creates a Flight object and populates it with A-files.
+    Creates a Flight object and populates it with D-files and optional information from A-files.
 
     Parameters
     ----------

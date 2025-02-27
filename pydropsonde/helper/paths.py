@@ -161,21 +161,21 @@ class Flight:
         """Returns a dictionary of `Sonde` class instances for all A-files found in `flight_idpath`
         and also sets the dictionary as value of `Sondes` attribute
         """
-        afiles = self.get_all_afiles()
+        dfiles = self.get_all_dfiles()
 
         Sondes = {}
 
-        for a_file in afiles:
-            sonde_id = rr.get_sonde_id(a_file)
-            try:
+        for d_file in dfiles:
+            sonde_id = rr.get_sonde_id(d_file)
+            if pp(d_file.replace("D", "A")).is_file():
+                a_file = d_file.replace("D", "A")
                 launch_detect = rr.check_launch_detect_in_afile(a_file)
                 launch_time = rr.get_launch_time(a_file)
-            except UnboundLocalError:
+            else:
+                a_file, launch_detect, launch_time = None, None, None
                 warnings.warn(
-                    f"No valid a-file for sonde {sonde_id}, {self.flight_id} - there is now launch detect or time information"
+                    f"No valid a-file for sonde {sonde_id}, {self.flight_id} - there is no launch detect or time information"
                 )
-                launch_detect = "UGLY"
-                launch_time = "UNKNOWN"
             Sondes[sonde_id] = Sonde(_serial_id=sonde_id, _launch_time=launch_time)
             Sondes[sonde_id].add_launch_detect(launch_detect)
             Sondes[sonde_id].sonde_rev = rr.get_sonde_rev(a_file)
@@ -189,6 +189,7 @@ class Flight:
             )
             Sondes[sonde_id].add_platform_id(self.platform_id)
             Sondes[sonde_id].add_afile(a_file)
+            Sondes[sonde_id].dfile = d_file
             Sondes[sonde_id].add_level_dir(
                 l0_dir=config.get(
                     "processor.Sonde.add_level_dir", "l0_dir", fallback=None
