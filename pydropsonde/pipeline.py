@@ -378,7 +378,7 @@ def iterate_Circle_method_over_dict_of_Circle_objects(
             if result is not None:
                 new_dict[key] = result
 
-            my_dict = new_dict
+        my_dict = new_dict
 
     obj.circles.update(my_dict)
     return obj
