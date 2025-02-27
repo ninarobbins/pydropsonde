@@ -333,7 +333,7 @@ def iterate_Sonde_method_over_dict_of_Sondes_objects(
                     new_dict[key] = result
             else:
                 new_dict[key] = value
-            my_dict = new_dict.copy()
+        my_dict = new_dict
     return my_dict
 
 
