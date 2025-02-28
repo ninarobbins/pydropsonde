@@ -11,6 +11,17 @@ from tqdm import tqdm
 import numpy as np
 import os
 import xarray as xr
+from typing import Protocol, runtime_checkable, Optional
+
+
+@runtime_checkable
+class CircleProcess(Protocol):
+    def __call__(self, circle: Circle, **kwargs) -> Optional[Circle]: ...
+
+
+@runtime_checkable
+class SondeProcess(Protocol):
+    def __call__(self, sonde: Sonde, **kwargs) -> Optional[Sonde]: ...
 
 
 def get_mandatory_args(function):
@@ -293,7 +304,7 @@ def create_and_populate_circle_object(
 
 
 def iterate_Sonde_method_over_dict_of_Sondes_objects(
-    obj: dict, functions: list, config: configparser.ConfigParser
+    obj: dict, functions: list[str | SondeProcess], config: configparser.ConfigParser
 ) -> dict:
     """
     Iterates over a dictionary of Sonde objects and applies a list of methods to each Sonde.
@@ -323,11 +334,13 @@ def iterate_Sonde_method_over_dict_of_Sondes_objects(
         A dictionary of Sonde objects with the results of the methods applied to them (keys where results are None are not included).
     """
     my_dict = obj
-    for function_name in functions:
+    for function in functions:
         new_dict = {}
         for key, value in tqdm(my_dict.items()):
+            if not callable(function):
+                function = getattr(Sonde, function)
+                assert isinstance(function, SondeProcess)
             if value.cont:
-                function = getattr(Sonde, function_name)
                 result = function(value, **get_args_for_function(config, function))
                 if result is not None:
                     new_dict[key] = result
@@ -338,7 +351,9 @@ def iterate_Sonde_method_over_dict_of_Sondes_objects(
 
 
 def iterate_Circle_method_over_dict_of_Circle_objects(
-    obj: Gridded, functions: list, config: configparser.ConfigParser
+    obj: Gridded,
+    functions: list[str | CircleProcess],
+    config: configparser.ConfigParser,
 ) -> object:
     """
     Iterates over a dictionary of Circle objects and applies a list of methods to each Circle.
@@ -370,10 +385,12 @@ def iterate_Circle_method_over_dict_of_Circle_objects(
 
     my_dict = obj.circles
 
-    for function_name in functions:
+    for function in functions:
         new_dict = {}
         for key, value in my_dict.items():
-            function = getattr(Circle, function_name)
+            if not callable(function):
+                function = getattr(Circle, function)
+                assert isinstance(function, CircleProcess)
             result = function(value, **get_args_for_function(config, function))
             if result is not None:
                 new_dict[key] = result
