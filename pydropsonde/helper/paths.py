@@ -5,6 +5,7 @@ from typing import Dict
 import os.path
 import warnings
 import ast
+import re
 
 from pydropsonde.helper import rawreader as rr
 from pydropsonde.processor import Sonde
@@ -132,9 +133,12 @@ class Flight:
         """Returns a list of paths to all D-files for the given directory
         and also sets it as attribute named 'dfiles_list'
         """
-        d_files = glob.glob(os.path.join(self.l0_dir, "D????????_??????.?"))
-        self.dfiles_list = d_files
-        return d_files
+        self.dfiles_list = [
+            fname
+            for fname in glob.glob(os.path.join(self.l0_dir, "D*"))
+            if re.match(r"^(?:.*/)?D(?:[0-9]{8}_)?[0-9]{6}\.[1-8]$", fname)
+        ]
+        return self.dfiles_list
 
     def quicklooks_path(self):
         """Path to quicklooks directory
