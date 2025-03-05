@@ -9,8 +9,7 @@ from pydropsonde.pipeline import (
 
 
 # Define a function for testing
-@pytest.fixture
-def test_func(a, b=2):
+def some_func(self, a, b=2):
     pass
 
 
@@ -18,14 +17,14 @@ def test_func(a, b=2):
 def config_and_function():
     # Create a ConfigParser object and add a section for the test function
     config = configparser.ConfigParser()
-    config.add_section("test_inspect_function.test_func")
-    config.set("test_inspect_function.test_func", "b", "3")
+    config.add_section("test_inspect_function.some_func")
+    config.set("test_inspect_function.some_func", "b", "3")
     config.add_section("MANDATORY")
     config.set("MANDATORY", "a", "1")
 
-    if "pydropsonde" not in test_func.__module__:
-        test_func.__module__ = f"pydropsonde.{test_func.__module__}"
-    return config, test_func
+    if "pydropsonde" not in some_func.__module__:
+        some_func.__module__ = f"pydropsonde.{some_func.__module__}"
+    return config, some_func
 
 
 def test_get_mandatory_args(config_and_function):

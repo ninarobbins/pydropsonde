@@ -49,8 +49,8 @@ def get_mandatory_args(function):
     """
     mandatory_args = []
     sig = inspect.signature(function)
-    for name, param in sig.parameters.items():
-        if param.default == inspect.Parameter.empty and name != "self":
+    for name, param in list(sig.parameters.items())[1:]:
+        if param.default == inspect.Parameter.empty:
             mandatory_args.append(name)
     return mandatory_args
 
