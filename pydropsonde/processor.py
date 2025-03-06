@@ -761,11 +761,16 @@ class Sonde:
             ds = self.interim_l2_ds
         else:
             ds = self.aspen_ds
+
         attrs = {
             "descripion": "unique sonde ID",
             "long_name": "sonde identifier",
-            "cf_role": "trajectory_id",
+            "cf_role": "profile_id",
         }
+        if self.global_attrs["l2"].get("featureType") == "trajectoryProfile":
+            attrs.update(cf_role="trajectory_id")
+        elif self.global_attrs["l2"].get("featureType") == "profile":
+            attrs.update(cf_role="profile_id")
         ds = ds.assign({variable_name: self.id})
         ds[variable_name] = ds[variable_name].assign_attrs(attrs)
 
@@ -1593,12 +1598,20 @@ class Sonde:
         """
         ds = self.interim_l3_ds
         source_ds = self.l2_ds
+
+        sonde_attrs = source_ds.sonde_id.attrs
+
+        if self.global_attrs["l3"].get("featureType") == "trajectoryProfile":
+            sonde_attrs.update(cf_role="trajectory_id")
+        elif self.global_attrs["l3"].get("featureType") == "profile":
+            sonde_attrs.update(cf_role="profile_id")
+
         self.interim_l3_ds = ds.assign(
             {
                 "sonde_id": (
                     self.sonde_dim,
                     [source_ds.sonde_id.values],
-                    source_ds.sonde_id.attrs,
+                    sonde_attrs,
                 ),
                 "vaisala_serial_id": (
                     self.sonde_dim,
