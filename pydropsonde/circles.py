@@ -85,7 +85,7 @@ class Circle:
         x_coor = (
             self.circle_ds.lon * 111.32 * np.cos(np.radians(self.circle_ds.lat)) * 1000
         )
-        y_coor = self.circle_ds.lat * 110.54 * 1000
+        y_coor = self.circle_ds.lat * 110.574 * 1000
 
         # converting from lat, lon to coordinates in metre from (0,0).
         if self.clat is None:
@@ -104,7 +104,7 @@ class Circle:
                         ]
                     )
 
-            self.clat = np.nanmean(c_yc) / (110.54 * 1000)
+            self.clat = np.nanmean(c_yc) / (110.574 * 1000)
             self.clon = np.nanmean(c_xc) / (
                 111.32 * np.cos(np.radians(self.clat)) * 1000
             )
@@ -114,7 +114,7 @@ class Circle:
         else:
             self.method = "circle from flight segmentation"
 
-        yc = self.clat * 110.54 * 1000
+        yc = self.clat * 110.574 * 1000
         xc = self.clon * (111.32 * np.cos(np.radians(self.clat)) * 1000)
 
         delta_x = x_coor - xc
