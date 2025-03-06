@@ -1712,10 +1712,10 @@ class Sonde:
             keep = []
         else:
             if keep == "all":
-                keep = (
-                    [f"{var}_qc" for var in list(self.qc.qc_by_var.keys())]
-                    + list(self.qc.qc_details.keys())
-                    + ["alt_near_gpsalt"]
+                keep = [f"{var}_qc" for var in list(self.qc.qc_by_var.keys())] + list(
+                    var
+                    for var in self.qc.qc_details.keys()
+                    if var in self.interim_l2_ds
                 )
                 for variable in self.qc.qc_vars:
                     ds = self.qc.add_variable_flags_to_ds(ds, variable, details=True)

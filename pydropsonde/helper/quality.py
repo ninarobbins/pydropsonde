@@ -604,8 +604,7 @@ class QualityControl:
         Adds non-variable quality control (QC) data to the given dataset.
 
         This method performs the following operations on the input dataset `ds`:
-        1. Adds altitude near GPS altitude to the dataset using the `add_alt_near_gpsalt_to_ds` method.
-        2. Replaces altitude variable in the dataset using the `add_alt_source_to_ds` method.
+        1. Replaces altitude variable in the dataset using the `add_alt_source_to_ds` method.
 
         Parameters:
         - ds: The input dataset to which non-variable QC data will be added.
@@ -613,8 +612,7 @@ class QualityControl:
         Returns:
         - ds_out: The output dataset with added non-variable QC data.
         """
-        ds_out = self.add_alt_near_gpsalt_to_ds(ds)
-        ds_out = self.add_below_aircraft_to_ds(ds_out)
+        ds_out = self.add_below_aircraft_to_ds(ds)
 
         return ds_out
 
@@ -629,10 +627,10 @@ class QualityControl:
             flags.pop("p_sfc_physics", None)
             flags.pop("rh_sfc_physics", None)
             flags.pop("ta_sfc_physics", None)
+            flags.pop("alt_near_gpsalt", None)
             if all(flags.values()):
                 qc_val = 1
             else:
-                flags.pop("alt_near_gpsalt", None)
                 if any(flags.values()):
                     qc_val = 2
                 else:
