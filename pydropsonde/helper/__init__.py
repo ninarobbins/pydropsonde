@@ -163,7 +163,6 @@ def get_global_attrs_from_config(config):
     try:
         global_attrs = dict(config.items("GLOBAL_ATTRS"))
     except NoSectionError:
-        print("No global attributes in config")
         global_attrs = {}
     global_attrs.update(
         dict(
@@ -183,7 +182,6 @@ def get_level_specific_attrs_from_config(config):
         try:
             attrs[f"l{i}"] = dict(config.items(f"L{i}_ATTRS"))
         except NoSectionError:
-            print(f"No L{i} attributes in config")
             attrs[f"l{i}"] = {}
     return attrs
 
