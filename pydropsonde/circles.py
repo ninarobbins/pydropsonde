@@ -187,6 +187,17 @@ class Circle:
         )
         return self
 
+    def add_circle_id_variable(self):
+        ds = self.circle_ds
+        attrs = {
+            "descripion": "unique circle ID from flight segmentation",
+            "long_name": "circle identifier",
+        }
+        ds = ds.assign({"circle_id": self.segment_id})
+        ds["circle_id"] = ds["circle_id"].assign_attrs(attrs)
+        self.circle_ds = ds
+        return self
+
     def interpolate_na_sondes(self, method="akima", max_gap=1500, thresh=4):
         if method is not None:
             ds = self.circle_ds.swap_dims({self.sonde_dim: "sonde_id"})

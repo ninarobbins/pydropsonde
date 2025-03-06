@@ -2005,9 +2005,7 @@ class Gridded:
     def concat_circles(self):
         count = []
         data = []
-        circle_ids = []
-
-        for circle_id, circle in self.circles.items():
+        for circle in self.circles.values():
             circle_ds = circle.circle_ds
             circle_ds = circle_ds.sortby("sonde_time")
 
@@ -2022,7 +2020,6 @@ class Gridded:
 
             count.append(len(circle_ds.sonde_time))
             data.append(circle_ds)
-            circle_ids.append(circle_id)
 
         concatenated_sonde_ds = xr.concat(
             [ds[vars_sonde_dim] for ds in data],
@@ -2046,7 +2043,6 @@ class Gridded:
         concatenated_ds = xr.merge(
             [sonde_ds_filtered, circle_ds_filtered], compat="override", join="outer"
         )
-        concatenated_ds = concatenated_ds.assign(circle_id=("circle", circle_ids))
 
         concatenated_ds = concatenated_ds.set_coords(
             ["circle_time", "circle_lon", "circle_lat"]
