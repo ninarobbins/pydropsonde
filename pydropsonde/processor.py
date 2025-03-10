@@ -1237,7 +1237,7 @@ class Sonde:
                     (not self.qc.qc_flags["u_profile_extent"])
                     and (self.qc.qc_flags["p_profile_extent"])
                 )
-            ) and (self.qc.qc_flags["p_low_physics"]):
+            ) and (self.qc.qc_flags["p_sfc_physics"]):
                 ds = ds.assign({alt_dim: ds["alt"]})
                 self.qc.qc_flags.update({"altitude_source": "alt"})
             elif not self.qc.qc_flags["p_sfc_physics"]:
