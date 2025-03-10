@@ -40,9 +40,7 @@ def check_launch_detect_in_afile(a_file: Optional[str]) -> Optional[bool]:
     bool
         True if launch is detected (1), else False (0)
     """
-    if a_file is None:
-        return None
-    else:
+    if a_file is not None and os.path.getsize(a_file) > 0:
         with open(a_file, "r") as f:
             module_logger.debug(f"Opened File: {a_file=}")
             lines = f.readlines()
@@ -54,6 +52,8 @@ def check_launch_detect_in_afile(a_file: Optional[str]) -> Optional[bool]:
                     break
 
             return bool(int(lines[line_id].split("=")[1]))
+    else:
+        return None
 
 
 def get_sonde_id(d_file: "str") -> str:
@@ -82,7 +82,7 @@ def get_sonde_id(d_file: "str") -> str:
 
 
 def get_sonde_rev(a_file: str | None) -> Optional[str]:
-    if a_file is not None:
+    if a_file is not None and os.path.getsize(a_file) > 0:
         with open(a_file, "r") as f:
             module_logger.debug(f"Opened File: {a_file=}")
 
@@ -117,9 +117,7 @@ def get_launch_time(a_file: str | None) -> np.datetime64:
         Launch time
     """
 
-    if a_file is None:
-        return np.datetime64("NaT")
-    else:
+    if a_file is not None and os.path.getsize(a_file) > 0:
         with open(a_file, "r") as f:
             module_logger.debug(f"Opened File: {a_file=}")
             lines = f.readlines()
@@ -134,6 +132,8 @@ def get_launch_time(a_file: str | None) -> np.datetime64:
             format = "%Y-%m-%d, %H:%M:%S"
 
             return np.datetime64(datetime.strptime(ltime, format))
+    else:
+        return np.datetime64("NaT")
 
 
 def get_spatial_coordinates_at_launch(a_file: str | None) -> List[float]:
