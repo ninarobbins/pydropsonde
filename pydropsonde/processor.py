@@ -230,9 +230,9 @@ class Sonde:
             The path to the post-ASPEN file. This attribute is set if the file exists at the constructed or provided path.
         """
 
-        l0_dir = self.l0_dir  # os.path.dirname(self.afile)
+        l0_dir = os.path.abspath(self.l0_dir)
         dname = os.path.basename(self.dfile)
-        l1_dir = self.l1_dir
+        l1_dir = os.path.abspath(self.l1_dir)
         l1_name = dname.split(".")[0] + "QC.nc"
 
         if path_to_postaspenfile is None:
