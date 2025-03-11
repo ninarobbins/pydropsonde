@@ -40,20 +40,18 @@ def check_launch_detect_in_afile(a_file: Optional[str]) -> Optional[bool]:
     bool
         True if launch is detected (1), else False (0)
     """
-    if a_file is not None and os.path.getsize(a_file) > 0:
-        with open(a_file, "r") as f:
-            module_logger.debug(f"Opened File: {a_file=}")
-            lines = f.readlines()
-
-            for i, line in enumerate(lines):
-                if "Launch Obs Done?" in line:
-                    line_id = i
-                    module_logger.debug(f'"Launch Obs Done?" found on line {line_id=}')
-                    break
-
-            return bool(int(lines[line_id].split("=")[1]))
-    else:
+    if a_file is None or not os.path.getsize(a_file) > 0:
         return None
+
+    with open(a_file, "r") as f:
+        module_logger.debug(f"Opened File: {a_file=}")
+        lines = f.readlines()
+
+        for i, line in enumerate(lines):
+            if "Launch Obs Done?" in line:
+                line_id = i
+                module_logger.debug(f'"Launch Obs Done?" found on line {line_id=}')
+                return bool(int(line.split("=")[1]))
 
 
 def get_sonde_id(d_file: "str") -> str:
@@ -82,16 +80,16 @@ def get_sonde_id(d_file: "str") -> str:
 
 
 def get_sonde_rev(a_file: str | None) -> Optional[str]:
-    if a_file is not None and os.path.getsize(a_file) > 0:
-        with open(a_file, "r") as f:
-            module_logger.debug(f"Opened File: {a_file=}")
-
-            for i, line in enumerate(f):
-                if "Sonde ID/Type/Rev" in line:
-                    module_logger.debug(f'"Sonde ID/Type/Rev" found on line {i=}')
-                    return line.split(":")[1].split(",")[2].lstrip()
-    else:
+    if a_file is None or not os.path.getsize(a_file) > 0:
         return None
+
+    with open(a_file, "r") as f:
+        module_logger.debug(f"Opened File: {a_file=}")
+
+        for i, line in enumerate(f):
+            if "Sonde ID/Type/Rev" in line:
+                module_logger.debug(f'"Sonde ID/Type/Rev" found on line {i=}')
+                return line.split(":")[1].split(",")[2].lstrip()
 
 
 def get_launch_time(a_file: str | None) -> np.datetime64:
@@ -116,24 +114,21 @@ def get_launch_time(a_file: str | None) -> np.datetime64:
     np.datetime64
         Launch time
     """
-
-    if a_file is not None and os.path.getsize(a_file) > 0:
-        with open(a_file, "r") as f:
-            module_logger.debug(f"Opened File: {a_file=}")
-            lines = f.readlines()
-
-            for i, line in enumerate(lines):
-                if "Launch Time (y,m,d,h,m,s)" in line:
-                    module_logger.debug(
-                        f'"Launch Time (y,m,d,h,m,s)" found on line {i=}'
-                    )
-                    break
-            ltime = line.split(":", 1)[1].lstrip().rstrip()
-            format = "%Y-%m-%d, %H:%M:%S"
-
-            return np.datetime64(datetime.strptime(ltime, format))
-    else:
+    if a_file is None or not os.path.getsize(a_file) > 0:
         return np.datetime64("NaT")
+
+    with open(a_file, "r") as f:
+        module_logger.debug(f"Opened File: {a_file=}")
+        lines = f.readlines()
+
+        for i, line in enumerate(lines):
+            if "Launch Time (y,m,d,h,m,s)" in line:
+                module_logger.debug(f'"Launch Time (y,m,d,h,m,s)" found on line {i=}')
+                break
+        ltime = line.split(":", 1)[1].lstrip().rstrip()
+        format = "%Y-%m-%d, %H:%M:%S"
+
+        return np.datetime64(datetime.strptime(ltime, format))
 
 
 def get_spatial_coordinates_at_launch(a_file: str | None) -> List[float]:
