@@ -74,7 +74,7 @@ def get_sonde_id(d_file: "str") -> str:
             module_logger.debug(f"Opened File: {d_file=}")
             header = f.readline()
             return header.split(" ")[2]
-    except UnboundLocalError:
+    except IndexError:
         dfile_base = os.path.basename(d_file)
         return dfile_base.split(".")[0][1:]
 
