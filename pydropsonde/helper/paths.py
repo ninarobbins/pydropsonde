@@ -171,8 +171,7 @@ class Flight:
 
         for d_file in dfiles:
             sonde_id = rr.get_sonde_id(d_file)
-            if pp(d_file.replace("D", "A")).is_file():
-                a_file = d_file.replace("D", "A")
+            if pp(a_file := d_file.replace("D", "A")).is_file():
                 launch_detect = rr.check_launch_detect_in_afile(a_file)
                 launch_time = rr.get_launch_time(a_file)
             else:
