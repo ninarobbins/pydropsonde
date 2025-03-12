@@ -672,22 +672,31 @@ class Sonde:
         flight_attrs = {}
 
         if not self.afile:
-            print(f"No flight attributes for {self} on {self.flight_id}")
-        else:
-            with open(self.afile, "r") as f:
-                lines = f.readlines()
+            print(
+                f"No flight attributes for {self} on {self.flight_id}"
+            )
+            return self
 
-            for attr in l2_flight_attributes_map.keys():
-                for line_id, line in enumerate(lines):
-                    if attr in line:
-                        break
+        with open(self.afile, "r") as f:
+            lines = f.readlines()
 
-                attr = l2_flight_attributes_map.get(attr, attr)
-                try:
-                    value = lines[line_id].split("= ")[1]
-                    flight_attrs[attr] = float(value) if "AVAPS" not in attr else value
-                except UnboundLocalError:
-                    print(f"No flight attributes for {self} on {self.flight_id}")
+        for a_file_attr_name, ds_attr_name in l2_flight_attributes_map.items():
+            if (
+                "AVAPS" in ds_attr_name
+            ):  # TODO: maybe the dtype should be part of l2_flight_attributes_map
+                dtype = str
+            else:
+                dtype = float
+
+            for line in lines:
+                if a_file_attr_name in line:
+                    try:
+                        value = line.split("= ")[1]
+                        flight_attrs[ds_attr_name] = dtype(value)
+                    except IndexError:
+                        print(
+                            f"No flight attribute {a_file_attr_name} for {self} on {self.flight_id}"
+                        )
                     break
         self.flight_attrs = flight_attrs
 
