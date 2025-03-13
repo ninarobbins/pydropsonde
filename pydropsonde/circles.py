@@ -218,6 +218,50 @@ class Circle:
         self.circle_ds = ds
         return self
 
+    def extrapolate_na_sondes(self, max_alt=300):
+        """
+        CAREFUL: This should be used after interpolate_na_sondes, because of the p interpolation
+        """
+        ds = self.circle_ds.sortby(self.alt_dim)
+
+        constant_vars = ["u", "v", "q", "theta"]
+        ds = ds.assign(
+            {
+                var: (
+                    ds[var].dims,
+                    ds[var].bfill(dim="altitude", limit=int(max_alt // 10)).values,
+                    ds[var].attrs,
+                )
+                for var in constant_vars
+            }
+        )
+        p_log = np.log(
+            ds.reset_coords().p.sel({self.alt_dim: slice(0, max_alt + 1000)})
+        ).interpolate_na(
+            dim=self.alt_dim,
+            method="linear",
+            max_gap=int(max_alt),
+            fill_value="extrapolate",
+        )
+        ds = ds.assign(
+            p=(
+                ds.p.dims,
+                xr.concat(
+                    [
+                        np.exp(p_log),
+                        ds.reset_coords().p.sel(
+                            {self.alt_dim: slice(max_alt + 1001, None)}
+                        ),
+                    ],
+                    dim=self.alt_dim,
+                ).values,
+                ds.p.attrs,
+            )
+        )
+
+        self.circle_ds = ds
+        return self
+
     def interpolate_na_sondes(self, method="akima", max_gap=1500, thresh=4):
         if method is not None:
             ds = self.circle_ds.swap_dims({self.sonde_dim: "sonde_id"})

@@ -647,6 +647,7 @@ pipeline = {
             "get_xy_coords_for_circles",
             "drop_vars",
             "interpolate_na_sondes",
+            "extrapolate_na_sondes",
         ],
         "output": "gridded",
         "comment": "prepare circle dataset for calculation",
