@@ -40,6 +40,7 @@ def main():
                 import configparser
 
                 config = configparser.ConfigParser()
+                config.optionxform = str
                 config.read(config_file_path)
 
         pi.run_pipeline(pi.pipeline, config)
