@@ -1290,8 +1290,9 @@ class Sonde:
         diff_array = ds[alt_dim].sortby("time").dropna(dim="time").diff(dim="time")
         if not np.all(diff_array < 0):
             warnings.warn(
-                f"your altitude for sonde {self.serial_id
-                } on {self.launch_time} is not sorted."
+                f"your altitude for sonde {self.serial_id} on {
+                    self.launch_time
+                } is not sorted."
             )
             if bottom_up:
                 alt = ds[alt_dim].sortby("time", ascending=False).values

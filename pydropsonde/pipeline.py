@@ -300,7 +300,7 @@ def create_and_populate_circle_object(
             )
             circles[segment["segment_id"]] = circle
         else:
-            print(f"No data for segment {segment["segment_id"]}")
+            print(f"No data for segment {segment['segment_id']}")
 
     gridded.circles = circles
 
