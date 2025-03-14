@@ -35,6 +35,10 @@ class Circle:
                 "alt_near_gpsalt",
                 "alt_source",
                 "alt_near_gpsalt_max_diff",
+                "altitude_below_aircraft",
+                "altitude_source",
+                "lat",
+                "lon",
             ]
         ds = self.circle_ds
         ds = (
@@ -152,12 +156,12 @@ class Circle:
         circle_lon_attrs = {
             "long_name": "circle_lon",
             "description": f"Longitude of {self.method}",
-            "units": self.circle_ds.lon.attrs["units"],
+            "units": "degrees_east",
         }
         circle_lat_attrs = {
             "long_name": "circle_lat",
             "description": f"Latitude of {self.method}",
-            "units": self.circle_ds.lat.attrs["units"],
+            "units": "degrees_north",
         }
         circle_altitude_attrs = {
             "long_name": "circle_altitude",
