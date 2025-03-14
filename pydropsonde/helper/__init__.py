@@ -129,16 +129,6 @@ l3_coords = dict(
     },
 )
 
-l4_coords = dict(
-    circle_time={
-        "long_name": "mean launch time of all sondes in circle",
-        "time_zone": "UTC",
-    },
-    circle_lon={"long_name": "longitude of circle center"},
-    circle_lat={"long_name": "latitude of circle center"},
-    aircraft_msl_altitude={"long_name": "aircraft altitude at launch", "units": "m"},
-)
-
 
 path_to_flight_ids = "{platform}/Level_0"
 path_to_l0_files = "{platform}/Level_0/{flight_id}"

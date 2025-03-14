@@ -180,6 +180,7 @@ class Circle:
         }
         circle_time_attrs = {
             "long_name": "circle_time",
+            "time_zone": "UTC",
             "description": "Mean launch time of first and last sonde in circle",
         }
         self.circle_ds = self.circle_ds.assign(
