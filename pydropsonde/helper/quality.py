@@ -599,6 +599,13 @@ class QualityControl:
         ds = hx.add_ancillary_var(ds, self.alt_dim, f"{self.alt_dim}_source")
         return ds
 
+    def get_all_qc_names(self):
+        return (
+            list(self.qc_flags.keys())
+            + list(self.qc_details.keys())
+            + [f"{var}_qc" for var in self.qc_vars]
+        )
+
     def add_non_var_qc_to_ds(self, ds):
         """
         Adds non-variable quality control (QC) data to the given dataset.
