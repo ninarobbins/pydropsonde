@@ -29,7 +29,7 @@ class Circle:
         """
         drop m and N variables from level 3 from circle dataset
         """
-        data_vars = ["u", "v", "ta", "p", "rh", "theta", "q"]
+        data_vars = ["u", "v", "ta", "p", "rh", "theta", "q", "altitude"]
         if variables is None:
             variables = [
                 "bin_average_time",

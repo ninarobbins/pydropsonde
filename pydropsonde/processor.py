@@ -1277,7 +1277,7 @@ class Sonde:
             )
         alt_attrs["long_name"] = "altitude"
         alt_attrs["description"] = (
-            "derived from either gpsalt or alt in Level 2. See alt_source"
+            "Best estimate from either GPS or pressure measurements. See details for each sonde in respective Level 2 dataset."
         )
         ds.altitude.attrs.update(alt_attrs)
         self.alt_dim = "altitude"
