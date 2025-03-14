@@ -2029,6 +2029,50 @@ class Gridded:
 
         return self
 
+    def remove_qc_from_l3(self, remove=True, filename=None, variables=None):
+        ds = self.concat_sonde_ds
+        if variables is None:
+            variables = [
+                "rh",
+                "q",
+                "p",
+                "ta",
+                "theta",
+                "u",
+                "v",
+                "altitude",
+                "alt",
+                "gps",
+                "gpspos",
+            ]
+        qc_vars = []
+        if remove:
+            for var in variables:
+                try:
+                    ds[var].attrs.pop("ancillary_variables", None)
+                except KeyError:
+                    pass
+                qc_vars = qc_vars + [
+                    qcvar
+                    for qcvar in ds.variables
+                    if (f"{var}_" in qcvar) & ~(qcvar == f"{var}_qc")
+                ]
+            for var in ["rh", "p", "ta", "u", "v"]:
+                ds = hx.add_ancillary_var(ds, var, f"{var}_qc")
+            ds = hx.add_ancillary_var(ds, "q", "rh_qc")
+            ds = hx.add_ancillary_var(ds, "theta", "ta_qc")
+
+        self.concat_sonde_ds = ds.drop_vars(qc_vars)
+        if filename is not None:
+            hx.write_ds(
+                ds[qc_vars],
+                dir=self.l3_dir,
+                filename=filename,
+                object_dims=(self.sonde_dim,),
+                alt_dim=self.alt_dim,
+            )
+        return self
+
     def get_l3_dir(self, l3_dir: str = None):
         """
         Determines the Level 3 directory for the Gridded object.
