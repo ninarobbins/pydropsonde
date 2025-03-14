@@ -281,7 +281,7 @@ class Circle:
         for par in variables:
             long_name = self.circle_ds[par].attrs.get("long_name")
             standard_name = self.circle_ds[par].attrs.get("standard_name")
-            varnames = ["mean_" + par, "d" + par + "dx", "d" + par + "dy"]
+            varnames = [par + "_mean", par + "_d" + par + "dx", par + "_d" + par + "dy"]
             var_units = self.circle_ds[par].attrs.get("units", None)
             long_names = [
                 "circle mean of " + long_name,
@@ -350,38 +350,40 @@ class Circle:
         dy_denominator = ((ds.y - ds.y.mean(dim=sonde_dim)) ** 2).sum(dim=sonde_dim)
 
         for var in variables:
+            dvardx_name = f"{var}_d{var}dx"
+            dvardy_name = f"{var}_d{var}dy"
+
             var_err = (
                 ds[var]
-                - (ds[f"mean_{var}"] + ds[f"d{var}dx"] * ds.x + ds[f"d{var}dy"] * ds.y)
+                - (ds[f"{var}_mean"] + ds[dvardx_name] * ds.x + ds[dvardy_name] * ds.y)
             ) ** 2
             nominator = (var_err.sum(dim=sonde_dim)) / (
                 var_err.count(dim=sonde_dim) - 3
             )
-
             se_x = np.sqrt(nominator / dx_denominator)
             se_y = np.sqrt(nominator / dy_denominator)
 
-            dvardx_std_name = ds[f"d{var}dx"].attrs.get(
+            dvardx_std_name = ds[dvardx_name].attrs.get(
                 "standard_name", f"derivative_of_{var}_wrt_x"
             )
-            unit = ds[f"d{var}dx"].attrs.get("units", "")
-            dvardy_std_name = ds[f"d{var}dy"].attrs.get(
+            unit = ds[dvardx_name].attrs.get("units", "")
+            dvardy_std_name = ds[dvardy_name].attrs.get(
                 "standard_name", f"derivative_of_{var}_wrt_y"
             )
 
             ds = ds.assign(
                 {
-                    f"se_d{var}dx": (
+                    f"{dvardx_name}_std_error": (
                         [alt_dim],
-                        (se_x.where(~np.isnan(ds[f"d{var}dx"])).values),
+                        (se_x.where(~np.isnan(ds[dvardx_name])).values),
                         dict(
                             standard_name=f"{dvardx_std_name} standard_error",
                             units=unit,
                         ),
                     ),
-                    f"se_d{var}dy": (
+                    f"{dvardy_name}_std_error": (
                         [alt_dim],
-                        (se_y.where(~np.isnan(ds[f"d{var}dy"])).values),
+                        (se_y.where(~np.isnan(ds[dvardy_name])).values),
                         dict(
                             standard_name=f"{dvardy_std_name} standard_error",
                             units=unit,
@@ -389,33 +391,33 @@ class Circle:
                     ),
                 }
             )
-            ds = hx.add_ancillary_var(ds, f"d{var}dx", f"se_d{var}dx")
-            ds = hx.add_ancillary_var(ds, f"d{var}dy", f"se_d{var}dy")
-
+            ds = hx.add_ancillary_var(ds, dvardx_name, f"{dvardx_name}_std_error")
+            ds = hx.add_ancillary_var(ds, dvardy_name, f"{dvardy_name}_std_error")
+        div_error_name = "div_std_error"
         div_std_name = ds["div"].attrs.get("standard_name", "divergence_of_wind")
         ds = ds.assign(
             {
-                "se_div": (
+                div_error_name: (
                     [alt_dim],
-                    np.sqrt(ds.se_dudx**2 + ds.se_dudy**2).values,
+                    np.sqrt(ds.u_dudx_std_error**2 + ds.u_dudy_std_error**2).values,
                     dict(standard_name=f"{div_std_name} standard_error", units=unit),
                 )
             }
         )
 
-        ds = hx.add_ancillary_var(ds, "div", "se_div")
-        ds = hx.add_ancillary_var(ds, "vor", "se_div")
-        se_div_nona = ds.se_div.dropna(dim=alt_dim)
+        ds = hx.add_ancillary_var(ds, "div", "div_standard_error")
+        ds = hx.add_ancillary_var(ds, "vor", "div_standard_error")
+        se_div_nona = ds[div_error_name].dropna(dim=alt_dim)
         wvel_std_name = ds["wvel"].attrs.get("standard_name", "upward_air_velocity")
         ds = ds.assign(
             {
-                "se_wvel": (
-                    ds.se_div.dims,
+                "wvel_std_error": (
+                    ds[div_error_name].dims,
                     (
                         np.sqrt((se_div_nona**2).cumsum(dim=alt_dim))
                         * se_div_nona[alt_dim].diff(dim=alt_dim)
                     )
-                    .broadcast_like(ds.se_div)
+                    .broadcast_like(ds[div_error_name])
                     .values,
                     dict(
                         standard_name=f"{wvel_std_name} standard_error",
@@ -424,7 +426,7 @@ class Circle:
                 )
             }
         )
-        ds = hx.add_ancillary_var(ds, "wvel", "se_wvel")
+        ds = hx.add_ancillary_var(ds, "wvel", "wvel_std_error")
 
         omega_std_name = ds["omega"].attrs.get(
             "standard_name", "vertical_air_velocity_expressed_as_tendency_of_pressure"
@@ -432,15 +434,15 @@ class Circle:
 
         ds = ds.assign(
             {
-                "se_omega": (
-                    ds.se_div.dims,
+                "omega_std_error": (
+                    ds[div_error_name].dims,
                     (
                         np.sqrt((se_div_nona**2).cumsum(dim=alt_dim))
-                        * ds.mean_p.sel({alt_dim: se_div_nona[alt_dim]}).diff(
+                        * ds.p_mean.sel({alt_dim: se_div_nona[alt_dim]}).diff(
                             dim=alt_dim
                         )
                     )
-                    .broadcast_like(ds.se_div)
+                    .broadcast_like(ds[div_error_name])
                     .values
                     * 0.01
                     * 60**2,
@@ -451,7 +453,7 @@ class Circle:
                 )
             }
         )
-        ds = hx.add_ancillary_var(ds, "omega", "se_omega")
+        ds = hx.add_ancillary_var(ds, "omega", "omega_std_error")
 
         self.circle_ds = ds
         return self
@@ -497,13 +499,13 @@ class Circle:
             self: circle object with updated circle_ds
         """
         ds = self.circle_ds
-        D = ds.dudx + ds.dvdy
+        D = ds.u_dudx + ds.v_dvdy
         D_attrs = {
             "standard_name": "divergence_of_wind",
             "long_name": "Area-averaged horizontal mass divergence",
             "units": "s-1",
         }
-        self.circle_ds = ds.assign(div=(ds.dudx.dims, D.values, D_attrs))
+        self.circle_ds = ds.assign(div=(ds.u_dudx.dims, D.values, D_attrs))
         return self
 
     def add_vorticity(self):
@@ -517,13 +519,13 @@ class Circle:
             self: circle object with updated circle_ds
         """
         ds = self.circle_ds
-        vor = ds.dvdx - ds.dudy
+        vor = ds.v_dvdx - ds.u_dudy
         vor_attrs = {
             "standard_name": "atmosphere_relative_vorticity",
             "long_name": "Area-averaged horizontal relative vorticity",
             "units": "s-1",
         }
-        self.circle_ds = ds.assign(vor=(ds.dudx.dims, vor.values, vor_attrs))
+        self.circle_ds = ds.assign(vor=(ds.u_dudx.dims, vor.values, vor_attrs))
         return self
 
     def add_omega(self):
@@ -540,7 +542,7 @@ class Circle:
         ds = self.circle_ds
         alt_dim = self.alt_dim
         div = ds.div.where(~np.isnan(ds.div), drop=True).sortby(alt_dim)
-        p = ds.mean_p.where(~np.isnan(ds.div), drop=True).sortby(alt_dim)
+        p = ds.p_mean.where(~np.isnan(ds.div), drop=True).sortby(alt_dim)
         zero_vel = xr.DataArray(data=[0], dims=alt_dim, coords={alt_dim: [0]})
         pres_diff = xr.concat([zero_vel, p.diff(dim=alt_dim)], dim=alt_dim)
         del_omega = -div * pres_diff.values
