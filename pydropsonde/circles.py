@@ -272,64 +272,83 @@ class Circle:
 
     def apply_fit2d(self, variables=None):
         if variables is None:
-            variables = ["u", "v", "q", "ta", "p", "rh", "theta"]
+            variables = [
+                "u",
+                "v",
+                "q",
+                "ta",
+                "p",
+                "rh",
+                "theta",
+                "w_dir",
+                "w_spd",
+                "iwv",
+            ]
         alt_var = self.alt_dim
         alt_attrs = self.circle_ds[alt_var].attrs
 
         assign_dict = {}
 
         for par in variables:
-            long_name = self.circle_ds[par].attrs.get("long_name")
-            standard_name = self.circle_ds[par].attrs.get("standard_name")
-            varnames = [par + "_mean", par + "_d" + par + "dx", par + "_d" + par + "dy"]
-            var_units = self.circle_ds[par].attrs.get("units", None)
-            long_names = [
-                "circle mean of " + long_name,
-                "zonal gradient of " + long_name,
-                "meridional gradient of " + long_name,
-            ]
-            use_names = [
-                standard_name + "_circle_mean",
-                "derivative_of_" + standard_name + "_wrt_x",
-                "derivative_of_" + standard_name + "_wrt_y",
-            ]
             try:
-                weight = self.circle_ds[f"{par}_weights"]
+                long_name = self.circle_ds[par].attrs.get("long_name")
             except KeyError:
-                weight = xr.ones_like(self.circle_ds[par])
+                pass
+            else:
+                standard_name = self.circle_ds[par].attrs.get("standard_name")
+                varnames = [
+                    par + "_mean",
+                    par + "_d" + par + "dx",
+                    par + "_d" + par + "dy",
+                ]
+                var_units = self.circle_ds[par].attrs.get("units", None)
+                long_names = [
+                    "circle mean of " + long_name,
+                    "zonal gradient of " + long_name,
+                    "meridional gradient of " + long_name,
+                ]
+                use_names = [
+                    standard_name + "_circle_mean",
+                    "derivative_of_" + standard_name + "_wrt_x",
+                    "derivative_of_" + standard_name + "_wrt_y",
+                ]
+                try:
+                    weight = self.circle_ds[f"{par}_weights"]
+                except KeyError:
+                    weight = xr.ones_like(self.circle_ds[par])
 
-            results = self.fit2d_xr(
-                x=self.circle_ds.x,
-                y=self.circle_ds.y,
-                u=self.circle_ds[par],
-                weight=weight,
-                sonde_dim=self.sonde_dim,
-            )
+                results = self.fit2d_xr(
+                    x=self.circle_ds.x,
+                    y=self.circle_ds.y,
+                    u=self.circle_ds[par],
+                    weight=weight,
+                    sonde_dim=self.sonde_dim,
+                )
 
-            for varname, result, long_name, use_name in zip(
-                varnames, results, long_names, use_names
-            ):
-                if "mean" in varname:
-                    assign_dict[varname] = (
-                        [alt_var],
-                        result.data,
-                        {
-                            "long_name": long_name,
-                            "units": var_units,
-                        },
-                    )
-                else:
-                    assign_dict[varname] = (
-                        [alt_var],
-                        result.data,
-                        {
-                            "standard_name": use_name,
-                            "long_name": long_name,
-                            "units": f"{var_units} m-1",
-                        },
-                    )
+                for varname, result, long_name, use_name in zip(
+                    varnames, results, long_names, use_names
+                ):
+                    if "mean" in varname:
+                        assign_dict[varname] = (
+                            [alt_var],
+                            result.data,
+                            {
+                                "long_name": long_name,
+                                "units": var_units,
+                            },
+                        )
+                    else:
+                        assign_dict[varname] = (
+                            [alt_var],
+                            result.data,
+                            {
+                                "standard_name": use_name,
+                                "long_name": long_name,
+                                "units": f"{var_units} m-1",
+                            },
+                        )
 
-            ds = self.circle_ds.assign(assign_dict)
+                ds = self.circle_ds.assign(assign_dict)
         ds[alt_var].attrs.update(alt_attrs)
 
         self.circle_ds = ds
