@@ -428,14 +428,26 @@ class Circle:
             {
                 div_error_name: (
                     [alt_dim],
-                    np.sqrt(ds.u_dudx_std_error**2 + ds.u_dudy_std_error**2).values,
+                    np.sqrt(ds.u_dudx_std_error**2 + ds.v_dvdy_std_error**2).values,
                     dict(standard_name=f"{div_std_name} standard_error", units=unit),
+                )
+            }
+        )
+        vor_std_name = ds["vor"].attrs.get(
+            "standard_name", "atmosphere_relative_vorticity"
+        )
+        ds = ds.assign(
+            {
+                "vor_std_error": (
+                    [alt_dim],
+                    np.sqrt(ds.u_dudy_std_error**2 + ds.v_dvdx_std_error**2).values,
+                    dict(standard_name=f"{vor_std_name} standard_error", units=unit),
                 )
             }
         )
 
         ds = hx.add_ancillary_var(ds, "div", "div_standard_error")
-        ds = hx.add_ancillary_var(ds, "vor", "div_standard_error")
+        ds = hx.add_ancillary_var(ds, "vor", "vor_standard_error")
         se_div_nona = ds[div_error_name].dropna(dim=alt_dim)
         wvel_std_name = ds["wvel"].attrs.get("standard_name", "upward_air_velocity")
         ds = ds.assign(
