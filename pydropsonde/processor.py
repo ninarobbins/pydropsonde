@@ -979,7 +979,7 @@ class Sonde:
                 history=self.history,
                 title=self.global_attrs["l2"].get(
                     "title",
-                    self.global_attrs.get("title", "Dropsonde Data") + " Level_2",
+                    self.global_attrs.get("title", "Dropsonde Data") + " Level 2",
                 )
                 + f", {self.id}",
             )
@@ -1796,7 +1796,7 @@ class Sonde:
                 history=self.history,
                 title=self.global_attrs["l3"].get(
                     "title",
-                    self.global_attrs.get("title", "Dropsonde Data") + " Level_3",
+                    self.global_attrs.get("title", "Dropsonde Data") + " Level 3",
                 ),
             )
         )
@@ -2366,7 +2366,7 @@ class Gridded:
                 history=self.history,
                 title=self.global_attrs["l4"].get(
                     "title",
-                    self.global_attrs.get("title", "Dropsonde Data") + " Level_4",
+                    self.global_attrs.get("title", "Dropsonde Data") + " Level 4",
                 ),
             )
         )
