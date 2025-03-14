@@ -29,6 +29,7 @@ class Circle:
         """
         drop m and N variables from level 3 from circle dataset
         """
+        data_vars = ["u", "v", "ta", "p", "rh", "theta", "q"]
         if variables is None:
             variables = [
                 "bin_average_time",
@@ -54,7 +55,7 @@ class Circle:
                 ["gps_m_qc", "gps_N_qc", "gpspos_N_qc", "gpspos_m_qc"], errors="ignore"
             )
             .drop_vars(
-                [f"{var}_qc" for var in ["u", "v", "ta", "p", "rh"]],
+                [f"{var}_qc" for var in data_vars],
                 errors="ignore",
             )
             .drop_vars(
@@ -62,6 +63,7 @@ class Circle:
                 errors="ignore",
             )
         )
+
         for qc_details in [
             "sfc_physics_val",
             "near_surface_count",
@@ -69,10 +71,11 @@ class Circle:
             "profile_sparsity_fraction",
         ]:
             ds = ds.drop_vars(
-                [f"{var}_{qc_details}" for var in ["u", "v", "ta", "p", "rh"]],
+                [f"{var}_{qc_details}" for var in data_vars],
                 errors="ignore",
             )
-
+        for var in data_vars:
+            del ds[var].attrs["ancillary_variables"]
         self.circle_ds = ds
 
         return self
