@@ -661,6 +661,7 @@ pipeline = {
             "add_wvel",
             "add_circle_id_variable",
             "add_circle_variables_to_ds",
+            "get_circle_flight_id",
             "add_regression_stderr",
             "drop_dvardxy",
         ],

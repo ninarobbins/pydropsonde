@@ -80,6 +80,13 @@ class Circle:
 
         return self
 
+    def get_circle_flight_id(self):
+        flight_id = self.circle_ds.flight_id.sel({self.sonde_dim: 0})
+        self.circle_ds = self.circle_ds.drop_vars(["flight_id"]).assign(
+            flight_id=flight_id
+        )
+        return self
+
     def get_xy_coords_for_circles(self):
         """
         Calculate x and y from lat and lon relative to circle center.
