@@ -366,7 +366,7 @@ class Sonde:
         history = (
             history
             + aspen_time.isoformat()
-            + f" ASPEN processing with {aspen_version} \n"
+            + f" Level 1 ASPEN processing with {aspen_version} \n"
         )
         self.history = history
         return self
@@ -847,7 +847,7 @@ class Sonde:
         history = (
             history
             + datetime.now(timezone.utc).isoformat()
-            + f" quality control with pydropsonde {__version__} \n"
+            + f" Level 2 quality control with pydropsonde {__version__} \n"
         )
         self.history = history
         return self
@@ -1924,9 +1924,11 @@ class Gridded:
                 datetime.fromisoformat(split_line[0])
             except ValueError:
                 warnings.warn(
-                    f"The first part of line {line_nb} in the history is not a date. It was removed from the attribute"
+                    f"The first part of line {line_nb} in the history is not a date"
                 )
-            new_hist += split_line[1] + "\n"
+                new_hist += line + "\n"
+            else:
+                new_hist += split_line[1] + "\n"
         self.history = new_hist
         return self
 
@@ -2122,11 +2124,7 @@ class Gridded:
 
     def update_history_concat_l3(self):
         history = getattr(self, "history", "")
-        history = (
-            history
-            + datetime.now(timezone.utc).isoformat()
-            + f" level3 concatenation with pydropsonde {__version__} \n"
-        )
+        history = history + f"Level 3 concatenation with pydropsonde {__version__} \n"
         self.history = history
         return self
 
@@ -2342,11 +2340,7 @@ class Gridded:
 
     def update_history_l4(self):
         history = getattr(self, "history", "")
-        history = (
-            history
-            + datetime.now(timezone.utc).isoformat()
-            + f" level4 computation with pydropsonde {__version__} \n"
-        )
+        history = history + f"Level 4 computation with pydropsonde {__version__} \n"
         self.history = history
         return self
 
