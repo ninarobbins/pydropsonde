@@ -2048,7 +2048,12 @@ class Gridded:
             ["circle_time", "circle_lon", "circle_lat"]
         )
         concatenated_ds = concatenated_ds.reset_coords(
-            ["aircraft_latitude", "aircraft_longitude", "aircraft_msl_altitude"]
+            [
+                "aircraft_latitude",
+                "aircraft_longitude",
+                "aircraft_msl_altitude",
+                "sonde_id",
+            ]
         )
         concatenated_ds = concatenated_ds.assign_coords(
             sondes_per_circle=("circle", count)
