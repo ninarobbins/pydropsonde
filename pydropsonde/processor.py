@@ -2057,11 +2057,15 @@ class Gridded:
                 "sonde_id",
             ]
         )
-        concatenated_ds = concatenated_ds.assign_coords(
-            sondes_per_circle=("circle", count)
+
+        sondes_per_circle_attrs = dict(
+            sample_dimension="sonde",
+            description="Number of sondes per circle. Count variable for dimension sonde.",
         )
 
-        concatenated_ds.sondes_per_circle.attrs["sample_dimension"] = "sonde"
+        concatenated_ds = concatenated_ds.assign_coords(
+            sondes_per_circle=("circle", count, sondes_per_circle_attrs)
+        )
 
         self._interim_l4_ds = concatenated_ds
 
