@@ -358,8 +358,8 @@ def calc_iwv(ds, sonde_dim="sonde_id", alt_dim="alt", qc_var=None):
     ds_iwv.attrs = dict(
         standard_name="atmosphere_mass_content_of_water_vapor",
         units="kg m-2",
-        long_name="integrated water vapour",
-        description="vertically integrated water vapour up to aircraft altitude",
+        long_name="integrated water vapor",
+        description="vertically integrated water vapor up to aircraft altitude",
     )
     ds = xr.merge([ds, ds_iwv])
     return ds
