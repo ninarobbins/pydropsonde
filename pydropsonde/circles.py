@@ -430,7 +430,10 @@ class Circle:
                 div_error_name: (
                     [alt_dim],
                     np.sqrt(ds.u_dudx_std_error**2 + ds.v_dvdy_std_error**2).values,
-                    dict(standard_name=f"{div_std_name} standard_error", units=unit),
+                    dict(
+                        standard_name=f"{div_std_name} standard_error",
+                        units=ds.div.attrs.get("units", "s-1"),
+                    ),
                 )
             }
         )
@@ -442,13 +445,16 @@ class Circle:
                 "vor_std_error": (
                     [alt_dim],
                     np.sqrt(ds.u_dudy_std_error**2 + ds.v_dvdx_std_error**2).values,
-                    dict(standard_name=f"{vor_std_name} standard_error", units=unit),
+                    dict(
+                        standard_name=f"{vor_std_name} standard_error",
+                        units=ds.vor.attrs.get("units", "s-1"),
+                    ),
                 )
             }
         )
 
-        ds = hx.add_ancillary_var(ds, "div", "div_standard_error")
-        ds = hx.add_ancillary_var(ds, "vor", "vor_standard_error")
+        ds = hx.add_ancillary_var(ds, "div", "div_std_error")
+        ds = hx.add_ancillary_var(ds, "vor", "vor_std_error")
         se_div_nona = ds[div_error_name].dropna(dim=alt_dim)
         wvel_std_name = ds["wvel"].attrs.get("standard_name", "upward_air_velocity")
         ds = ds.assign(
