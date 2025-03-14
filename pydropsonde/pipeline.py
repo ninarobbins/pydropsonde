@@ -662,6 +662,7 @@ pipeline = {
             "add_circle_id_variable",
             "add_circle_variables_to_ds",
             "add_regression_stderr",
+            "drop_dvardxy",
         ],
         "output": "gridded",
         "comment": "calculate circle products",

@@ -362,7 +362,7 @@ class Circle:
         alt_dim = self.alt_dim
         sonde_dim = self.sonde_dim
         if variables is None:
-            variables = ["u", "v", "q", "ta", "p"]
+            variables = ["u", "v"]
         ds = self.circle_ds
 
         dx_denominator = ((ds.x - ds.x.mean(dim=sonde_dim)) ** 2).sum(dim=sonde_dim)
@@ -475,6 +475,18 @@ class Circle:
         ds = hx.add_ancillary_var(ds, "omega", "omega_std_error")
 
         self.circle_ds = ds
+        return self
+
+    def drop_dvardxy(self, variables=None):
+        if variables is None:
+            variables = ["iwv", "p", "rh", "q", "ta", "theta", "w_spd", "w_dir"]
+        self.circle_ds = self.circle_ds.drop_vars(
+            [f"{var}_d{var}dx" for var in variables],
+            errors="ignore",
+        ).drop_vars(
+            [f"{var}_d{var}dy" for var in variables],
+            errors="ignore",
+        )
         return self
 
     def add_density(self):
