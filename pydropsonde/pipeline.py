@@ -27,6 +27,7 @@ class SondeProcess(Protocol):
     def __call__(self, sonde: Sonde, **kwargs) -> Optional[Sonde]: ...
 
 
+
 def get_mandatory_args(function):
     """
     Get a list of all arguments that do not have a default value for each function in the list.
@@ -52,8 +53,8 @@ def get_mandatory_args(function):
     """
     mandatory_args = []
     sig = inspect.signature(function)
-    for name, param in list(sig.parameters.items())[1:]:
-        if param.default == inspect.Parameter.empty:
+    for name, param in sig.parameters.items():
+        if param.default == inspect.Parameter.empty and name != "self":
             mandatory_args.append(name)
     return mandatory_args
 
@@ -118,11 +119,7 @@ def get_nondefaults_from_config(
         A dictionary of non-default arguments for the function.
     """
 
-    try:
-        section_name = f"{obj.__module__}.{obj.__qualname__}".split("pydropsonde.")[1]
-    except IndexError:
-        section_name = None
-
+    section_name = f"{obj.__module__}.{obj.__qualname__}".split("pydropsonde.")[1]
     if section_name in config.sections():
         nondefault_args = config[section_name]
     else:
@@ -313,6 +310,7 @@ def create_and_populate_circle_object(
 def iterate_Sonde_method_over_list_of_Sondes_objects(
     sondes: list[Sonde], functions: list, config: configparser.ConfigParser
 ) -> list[Sonde]:
+
     """
     Iterates over a list of Sonde objects and applies a list of methods to each Sonde.
 
@@ -324,7 +322,6 @@ def iterate_Sonde_method_over_list_of_Sondes_objects(
     The arguments for each method are determined by the `get_args_for_function` function,
     which uses the nondefaults dictionary and the config object.
     """
-
     for function in functions:
         new_sondes = []
         for sonde in tqdm(sondes):
@@ -346,10 +343,9 @@ def iterate_Sonde_method_over_list_of_Sondes_objects(
     return sondes
 
 
+
 def iterate_Circle_method_over_dict_of_Circle_objects(
-    obj: Gridded,
-    functions: list[str | CircleProcess],
-    config: configparser.ConfigParser,
+    obj: Gridded, functions: list, config: configparser.ConfigParser
 ) -> object:
     """
     Iterates over a dictionary of Circle objects and applies a list of methods to each Circle.
@@ -381,17 +377,15 @@ def iterate_Circle_method_over_dict_of_Circle_objects(
 
     my_dict = obj.circles
 
-    for function in functions:
+    for function_name in functions:
         new_dict = {}
         for key, value in my_dict.items():
-            if not callable(function):
-                function = getattr(Circle, function)
-                assert isinstance(function, CircleProcess)
+            function = getattr(Circle, function_name)
             result = function(value, **get_args_for_function(config, function))
             if result is not None:
                 new_dict[key] = result
 
-        my_dict = new_dict
+            my_dict = new_dict
 
     obj.circles.update(my_dict)
     return obj
@@ -578,6 +572,7 @@ pipeline = {
             "add_attributes_as_var",
             "make_attr_coordinates",
             "add_qc_to_interim_l3",
+            "extrapolate_na_sondes",
             "add_iwv",
             "add_Nm_to_vars",
             "update_history_l3",
@@ -617,20 +612,10 @@ pipeline = {
         "output": "gridded",
         "comment": "This step creates the L3 dataset after adding additional products.",
     },
-    "create_interim_l4": {
-        "intake": "gridded",
-        "apply": apply_method_to_dataset,
-        "functions": [
-            "add_l3_ds",
-            "create_interim_l4",
-        ],
-        "output": "gridded",
-        "comment": "prepare level 4 processing",
-    },
     "get_circles": {
         "intake": "gridded",
         "apply": apply_method_to_dataset,
-        "functions": ["get_circle_times_from_segmentation"],
+        "functions": ["add_l3_ds", "get_circle_times_from_segmentation"],
         "output": "gridded",
         "comment": "get circle times and add to gridded",
     },

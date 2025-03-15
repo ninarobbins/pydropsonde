@@ -323,7 +323,7 @@ def calc_rh_from_q(ds, alt_dim="altitude"):
     return ds
 
 
-def calc_iwv(ds, sonde_dim="sonde_id", alt_dim="alt", qc_var=None):
+def calc_iwv(ds, sonde_dim="sonde_id", alt_dim="alt", max_alt=300, qc_var=None):
     """
     Input :
 
@@ -338,9 +338,10 @@ def calc_iwv(ds, sonde_dim="sonde_id", alt_dim="alt", qc_var=None):
     if qc_var is not None:
         qc_vals = [ds[var].values for var in qc_var]
     if (qc_var is None) or (qc_vals.count(0) == len(qc_vals)):
-        pressure = ds.p.values
+        pressure = ds.p.values[0]
         temperature = ds.ta.values
-        q = ds.q.values
+        q = ds.q.values[0]
+
         alt = ds[alt_dim].values
 
         mask_p = ~np.isnan(pressure)
