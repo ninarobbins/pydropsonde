@@ -11,17 +11,6 @@ from tqdm import tqdm
 import numpy as np
 import os
 import xarray as xr
-from typing import Protocol, runtime_checkable, Optional
-
-
-@runtime_checkable
-class CircleProcess(Protocol):
-    def __call__(self, circle: Circle, **kwargs) -> Optional[Circle]: ...
-
-
-@runtime_checkable
-class SondeProcess(Protocol):
-    def __call__(self, sonde: Sonde, **kwargs) -> Optional[Sonde]: ...
 
 
 def get_mandatory_args(function):
@@ -49,8 +38,8 @@ def get_mandatory_args(function):
     """
     mandatory_args = []
     sig = inspect.signature(function)
-    for name, param in list(sig.parameters.items())[1:]:
-        if param.default == inspect.Parameter.empty:
+    for name, param in sig.parameters.items():
+        if param.default == inspect.Parameter.empty and name != "self":
             mandatory_args.append(name)
     return mandatory_args
 
@@ -115,11 +104,7 @@ def get_nondefaults_from_config(
         A dictionary of non-default arguments for the function.
     """
 
-    try:
-        section_name = f"{obj.__module__}.{obj.__qualname__}".split("pydropsonde.")[1]
-    except IndexError:
-        section_name = None
-
+    section_name = f"{obj.__module__}.{obj.__qualname__}".split("pydropsonde.")[1]
     if section_name in config.sections():
         nondefault_args = config[section_name]
     else:
@@ -269,15 +254,15 @@ def create_and_populate_circle_object(
     """
 
     circles = {}
-    ds = gridded.interim_l4_ds
+
     for segment in gridded.segments:
-        extra_sondes = ds.where(
-            ds["sonde_id"].isin(segment.get("extra_sondes")), drop=True
+        extra_sondes = gridded.l3_ds.where(
+            gridded.l3_ds["sonde_id"].isin(segment.get("extra_sondes")), drop=True
         )
 
-        circle_ds = ds.where(
-            (ds["sonde_time"] >= np.datetime64(segment["start"]))
-            & (ds["sonde_time"] < np.datetime64(segment["end"])),
+        circle_ds = gridded.l3_ds.where(
+            (gridded.l3_ds["sonde_time"] > np.datetime64(segment["start"]))
+            & (gridded.l3_ds["sonde_time"] < np.datetime64(segment["end"])),
             drop=True,
         )
         circle_ds = xr.concat(
@@ -300,7 +285,7 @@ def create_and_populate_circle_object(
             )
             circles[segment["segment_id"]] = circle
         else:
-            print(f"No data for segment {segment['segment_id']}")
+            print(f"No data for segment {segment["segment_id"]}")
 
     gridded.circles = circles
 
@@ -308,7 +293,7 @@ def create_and_populate_circle_object(
 
 
 def iterate_Sonde_method_over_dict_of_Sondes_objects(
-    obj: dict, functions: list[str | SondeProcess], config: configparser.ConfigParser
+    obj: dict, functions: list, config: configparser.ConfigParser
 ) -> dict:
     """
     Iterates over a dictionary of Sonde objects and applies a list of methods to each Sonde.
@@ -338,26 +323,22 @@ def iterate_Sonde_method_over_dict_of_Sondes_objects(
         A dictionary of Sonde objects with the results of the methods applied to them (keys where results are None are not included).
     """
     my_dict = obj
-    for function in functions:
+    for function_name in functions:
         new_dict = {}
         for key, value in tqdm(my_dict.items()):
-            if not callable(function):
-                function = getattr(Sonde, function)
-                assert isinstance(function, SondeProcess)
             if value.cont:
+                function = getattr(Sonde, function_name)
                 result = function(value, **get_args_for_function(config, function))
                 if result is not None:
                     new_dict[key] = result
             else:
                 new_dict[key] = value
-        my_dict = new_dict
+            my_dict = new_dict.copy()
     return my_dict
 
 
 def iterate_Circle_method_over_dict_of_Circle_objects(
-    obj: Gridded,
-    functions: list[str | CircleProcess],
-    config: configparser.ConfigParser,
+    obj: Gridded, functions: list, config: configparser.ConfigParser
 ) -> object:
     """
     Iterates over a dictionary of Circle objects and applies a list of methods to each Circle.
@@ -389,17 +370,15 @@ def iterate_Circle_method_over_dict_of_Circle_objects(
 
     my_dict = obj.circles
 
-    for function in functions:
+    for function_name in functions:
         new_dict = {}
         for key, value in my_dict.items():
-            if not callable(function):
-                function = getattr(Circle, function)
-                assert isinstance(function, CircleProcess)
+            function = getattr(Circle, function_name)
             result = function(value, **get_args_for_function(config, function))
             if result is not None:
                 new_dict[key] = result
 
-        my_dict = new_dict
+            my_dict = new_dict
 
     obj.circles.update(my_dict)
     return obj
@@ -575,6 +554,7 @@ pipeline = {
             "add_attributes_as_var",
             "make_attr_coordinates",
             "add_qc_to_interim_l3",
+            "extrapolate_na_sondes",
             "add_iwv",
             "add_Nm_to_vars",
             "update_history_l3",
@@ -607,20 +587,10 @@ pipeline = {
         "output": "gridded",
         "comment": "This step creates the L3 dataset after adding additional products.",
     },
-    "create_interim_l4": {
-        "intake": "gridded",
-        "apply": apply_method_to_dataset,
-        "functions": [
-            "add_l3_ds",
-            "create_interim_l4",
-        ],
-        "output": "gridded",
-        "comment": "prepare level 4 processing",
-    },
     "get_circles": {
         "intake": "gridded",
         "apply": apply_method_to_dataset,
-        "functions": ["get_circle_times_from_segmentation"],
+        "functions": ["add_l3_ds", "get_circle_times_from_segmentation"],
         "output": "gridded",
         "comment": "get circle times and add to gridded",
     },
@@ -651,7 +621,6 @@ pipeline = {
             "add_omega",
             "add_wvel",
             "add_circle_variables_to_ds",
-            "add_regression_stderr",
         ],
         "output": "gridded",
         "comment": "calculate circle products",
