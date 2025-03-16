@@ -7,6 +7,7 @@ import os
 import subprocess
 import warnings
 import yaml
+import hashlib
 import numpy as np
 import xarray as xr
 from xhistogram.xarray import histogram
@@ -86,6 +87,16 @@ class Sonde:
     @property
     def is_minisonde(self):
         return self.sonde_rev == "N1"
+
+    @property
+    def sonde_hash(self):
+        with open(self.dfile, "r") as f:
+            header = f.readline()
+            return hashlib.sha256(header.encode("ascii")).hexdigest()[-8:]
+
+    @property
+    def id(self):
+        return self.sonde_hash
 
     def __post_init__(self):
         """
@@ -715,6 +726,7 @@ class Sonde:
             ),
             "is_floater": self.qc.is_floater.__str__(),
             "sonde_serial_ID": self.serial_id,
+            "sonde_ID": self.id,
         }
         self.sonde_attrs = sonde_attrs
 
@@ -722,7 +734,7 @@ class Sonde:
 
     def add_sonde_id_variable(self, variable_name="sonde_id"):
         """
-        Adds a variable and related attributes to the sonde object with the Sonde object (self)'s serial_id attribute.
+        Adds a variable and related attributes to the sonde object with the Sonde object (self)'s id attribute.
 
         Parameters
         ----------
@@ -732,7 +744,7 @@ class Sonde:
         Returns
         -------
         self : object
-            Returns the sonde object with a variable containing serial_id. Name of the variable provided by 'variable_name'.
+            Returns the sonde object with a variable containing id. Name of the variable provided by 'variable_name'.
         """
         if hasattr(self, "interim_l2_ds"):
             ds = self.interim_l2_ds
@@ -743,7 +755,7 @@ class Sonde:
             "long_name": "sonde identifier",
             "cf_role": "trajectory_id",
         }
-        ds = ds.assign({variable_name: self.serial_id})
+        ds = ds.assign({variable_name: self.id})
         ds[variable_name] = ds[variable_name].assign_attrs(attrs)
         self.interim_l2_ds = ds
 
@@ -896,20 +908,14 @@ class Sonde:
             Returns the sonde object with the L2 filename added as an attribute.
         """
 
-        if l2_filename is None:
-            if l2_filename_template:
-                l2_filename = l2_filename_template.format(
-                    platform=self.platform_id,
-                    serial_id=self.serial_id,
-                    flight_id=self.flight_id,
-                )
-            else:
-                l2_filename = hh.l2_filename_template.format(
-                    platform=self.platform_id,
-                    serial_id=self.serial_id,
-                    flight_id=self.flight_id,
-                )
-        self.l2_filename = l2_filename
+        self.l2_filename = l2_filename or (
+            l2_filename_template or hh.l2_filename_template
+        ).format(
+            platform=self.platform_id,
+            flight_id=self.flight_id,
+            sonde_hash=self.sonde_hash,
+            id=self.id,
+        )
 
         return self
 
@@ -951,9 +957,10 @@ class Sonde:
                     "title",
                     self.global_attrs.get("title", "Dropsonde Data") + " Level_2",
                 )
-                + f", {self.serial_id}",
+                + f", {self.id}",
             )
         )
+
         hx.write_ds(
             ds=ds,
             dir=l2_dir,
@@ -1021,25 +1028,18 @@ class Sonde:
         Returns:
         - self: The sonde instance with updated attributes.
         """
-        if interim_l3_dir is None:
-            interim_l3_dir = self.l2_dir.replace("Level_2", "Level_3_interim").replace(
-                self.flight_id, ""
-            )
-        if interim_l3_filename is None:
-            interim_l3_filename = "interim_l3_{sonde_id}_{version}.nc".format(
-                sonde_id=self.serial_id, version=__version__
-            )
-        else:
-            interim_l3_filename = interim_l3_filename.format(
-                sonde_id=self.serial_id, version=__version__
-            )
-        self.interim_l3_dir = interim_l3_dir
-        self.interim_l3_filename = interim_l3_filename
+        self.interim_l3_dir = interim_l3_dir or self.l2_dir.replace(
+            "Level_2", "Level_3_interim"
+        ).replace(self.flight_id, "")
+        self.interim_l3_filename = (
+            interim_l3_filename or "interim_l3_{id}_{version}.zarr"
+        ).format(id=self.id, version=__version__)
+
         if (not skip) and os.path.exists(
-            os.path.join(interim_l3_dir, interim_l3_filename)
+            os.path.join(self.interim_l3_dir, self.interim_l3_filename)
         ):
             self.interim_l3_ds = hx.open_dataset(
-                os.path.join(interim_l3_dir, interim_l3_filename)
+                os.path.join(self.interim_l3_dir, self.interim_l3_filename)
             )
             self.cont = False
             self.alt_dim = list(self.interim_l3_ds.sizes.keys())[-1]
