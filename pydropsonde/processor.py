@@ -98,6 +98,9 @@ class Sonde:
     def id(self):
         return self.sonde_hash
 
+    def __str__(self):
+        return f"Sonde({self.id})"
+
     def __post_init__(self):
         """
         Initializes the 'qc' attribute as an empty object and sets the 'sort_index' attribute based on 'launch_time'.
@@ -295,11 +298,11 @@ class Sonde:
             try:
                 ds = xr.open_dataset(self.postaspenfile, engine="netcdf4")
             except ValueError:
-                warnings.warn(f"No valid l1 file for sonde {self.serial_id}")
+                warnings.warn(f"No valid l1 file for {self}")
                 return None
             except OSError:
                 warnings.warn(
-                    f"Empty l1 file for sonde {self.serial_id} on {self.flight_id}. This might be fixed using the ASPEN software manually. "
+                    f"Empty l1 file for {self} on {self.flight_id}. This might be fixed using the ASPEN software manually. "
                 )
                 return None
             if "SondeId" not in ds.attrs:
@@ -325,7 +328,7 @@ class Sonde:
                 )
         else:
             raise ValueError(
-                f"I didn't find the `postaspenfile` attribute for Sonde {self.serial_id}, therefore I can't store the xarray dataset as an attribute"
+                f"I didn't find the `postaspenfile` attribute for {self}, therefore I can't store the xarray dataset as an attribute"
             )
         return self
 
@@ -395,11 +398,11 @@ class Sonde:
                 return self
             else:
                 print(
-                    f"No launch detected for Sonde {self.serial_id}. I am not running QC checks for this Sonde."
+                    f"No launch detected for {self}. I am not running QC checks for this Sonde."
                 )
         else:
             raise ValueError(
-                f"The attribute `launch_detect` does not exist for Sonde {self.serial_id}."
+                f"The attribute `launch_detect` does not exist for {self}."
             )
 
     def detect_floater(
@@ -558,7 +561,7 @@ class Sonde:
             return self
         else:
             print(
-                f"Quality control returned False. Therefore, filtering this sonde ({self.serial_id}) out from L2"
+                f"Quality control returned False. Therefore, filtering this sonde ({self}) out from L2"
             )
             return None
 
@@ -666,9 +669,7 @@ class Sonde:
         flight_attrs = {}
 
         if not self.afile:
-            print(
-                f"No flight attributes for sonde {self.serial_id} on {self.flight_id}"
-            )
+            print(f"No flight attributes for {self} on {self.flight_id}")
         else:
             with open(self.afile, "r") as f:
                 lines = f.readlines()
@@ -683,9 +684,7 @@ class Sonde:
                     value = lines[line_id].split("= ")[1]
                     flight_attrs[attr] = float(value) if "AVAPS" not in attr else value
                 except UnboundLocalError:
-                    print(
-                        f"No flight attributes for sonde {self.serial_id} on {self.flight_id}"
-                    )
+                    print(f"No flight attributes for {self} on {self.flight_id}")
                     break
         self.flight_attrs = flight_attrs
 
@@ -1220,7 +1219,7 @@ class Sonde:
         alt_attrs = ds[alt_dim].attrs
         if (not self.qc.qc_flags["p_sfc_physics"]) and (np.all(np.isnan(ds["gpsalt"]))):
             print(
-                f"No gpsalt values and no reliable alt values.  Sonde {self.serial_id} from {self.flight_id} is dropped"
+                f"No gpsalt values and no reliable alt values. {self} from {self.flight_id} is dropped"
             )
             return None
         elif alt_dim == "alt":
@@ -1298,9 +1297,7 @@ class Sonde:
         diff_array = ds[alt_dim].sortby("time").dropna(dim="time").diff(dim="time")
         if not np.all(diff_array < 0):
             warnings.warn(
-                f"your altitude for sonde {self.serial_id} on {
-                    self.launch_time
-                } is not sorted."
+                f"your altitude for {self} on {self.launch_time} is not sorted."
             )
             if bottom_up:
                 alt = ds[alt_dim].sortby("time", ascending=False).values

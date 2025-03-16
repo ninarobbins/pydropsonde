@@ -177,7 +177,7 @@ class Flight:
             else:
                 a_file, launch_detect, launch_time = None, None, None
                 warnings.warn(
-                    f"No valid a-file for sonde {sonde_id}, {self.flight_id} - there is no launch detect or time information"
+                    f"No valid a-file for {self}, {self.flight_id} - there is no launch detect or time information"
                 )
             Sondes[sonde_id] = Sonde(_serial_id=sonde_id, _launch_time=launch_time)
             Sondes[sonde_id].add_launch_detect(launch_detect)
