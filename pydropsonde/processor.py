@@ -757,6 +757,14 @@ class Sonde:
         }
         ds = ds.assign({variable_name: self.id})
         ds[variable_name] = ds[variable_name].assign_attrs(attrs)
+
+        ds = ds.assign({"vaisala_serial_id": self.serial_id})
+        ds["vaisala_serial_id"] = ds["vaisala_serial_id"].assign_attrs(
+            {
+                "description": "device serial ID provided by the manufacturer Vaisala",
+                "long_name": "vaisala serial identifier",
+            }
+        )
         self.interim_l2_ds = ds
 
         return self
@@ -1582,6 +1590,11 @@ class Sonde:
                     self.sonde_dim,
                     [source_ds.sonde_id.values],
                     source_ds.sonde_id.attrs,
+                ),
+                "vaisala_serial_id": (
+                    self.sonde_dim,
+                    [source_ds.vaisala_serial_id.values],
+                    source_ds.vaisala_serial_id.attrs,
                 ),
                 "platform_id": (
                     self.sonde_dim,
