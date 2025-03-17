@@ -38,8 +38,6 @@ class Circle:
                 "alt_near_gpsalt_max_diff",
                 "altitude_below_aircraft",
                 "altitude_source",
-                "lat",
-                "lon",
             ]
         ds = self.circle_ds
         ds = (
@@ -81,6 +79,10 @@ class Circle:
                 pass
         self.circle_ds = ds
 
+        return self
+
+    def drop_latlon(self):
+        self.circle_ds = self.circle_ds.drop_vars(["lat", "lon"])
         return self
 
     def get_circle_flight_id(self):

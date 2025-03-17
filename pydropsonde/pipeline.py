@@ -664,6 +664,7 @@ pipeline = {
             "calc_remove_sonde_manipulation",
             "add_sonde_relevance_to_ds",
             "add_circle_variables_to_ds",
+            "drop_latlon",
             "get_circle_flight_id",
             "add_regression_stderr",
             "drop_dvardxy",
