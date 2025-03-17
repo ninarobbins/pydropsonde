@@ -456,6 +456,17 @@ def run_substep(
     return previous_substep_output
 
 
+def verify_unique_sonde_ids(
+    sondes: list[Sonde], config: configparser.ConfigParser
+) -> list[Sonde]:
+    ids_so_far = set()
+    for sonde in sondes:
+        if sonde.id in ids_so_far:
+            raise ValueError(f"Duplicate sonde ID: {sonde.id}")
+        ids_so_far.add(sonde.id)
+    return sondes
+
+
 def run_pipeline(pipeline: dict, config: configparser.ConfigParser):
     """
     Executes a pipeline of processing steps.
@@ -567,6 +578,12 @@ pipeline = {
         ],
         "output": "sondes",
         "comment": "This step reads from the saved L2 files and prepares individual sonde datasets before they can be concatenated to create L3.",
+    },
+    "verify_unique_sonde_ids": {
+        "intake": "sondes",
+        "apply": verify_unique_sonde_ids,
+        "output": "sondes",
+        "comment": "This steps checks L3 interim sondes for uniqueness.",
     },
     "create_gridded": {
         "intake": "sondes",
