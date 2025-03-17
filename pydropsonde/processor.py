@@ -93,6 +93,8 @@ class Sonde:
 
     @property
     def sonde_hash(self):
+        if self.dfile is None:
+            raise AttributeError("sonde_hash needs dfile to be set")
         with open(self.dfile, "r") as f:
             header = f.readline()
             return hashlib.sha256(header.encode("ascii")).hexdigest()[-8:]
@@ -102,7 +104,7 @@ class Sonde:
         return self.sonde_hash
 
     def __str__(self):
-        return f"Sonde({self.id})"
+        return f"Sonde({getattr(self, 'id', 'unknown id')})"
 
     def __post_init__(self):
         """
@@ -672,9 +674,7 @@ class Sonde:
         flight_attrs = {}
 
         if not self.afile:
-            print(
-                f"No flight attributes for {self} on {self.flight_id}"
-            )
+            print(f"No flight attributes for {self} on {self.flight_id}")
             return self
 
         with open(self.afile, "r") as f:
