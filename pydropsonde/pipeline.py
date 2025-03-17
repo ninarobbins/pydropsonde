@@ -246,7 +246,7 @@ def create_and_populate_flight_object(
         "OPTIONAL", "path_to_l0_files", fallback=path_to_l0_files
     )
     output["platforms"] = platform_objects
-    output["sondes"] = {}
+    output["sondes"] = []
 
     for platform in platform_objects:
         for flight_id in platform_objects[platform].flight_ids:
@@ -257,7 +257,7 @@ def create_and_populate_flight_object(
                 path_structure=path_structure,
             )
 
-            output["sondes"].update(flight.populate_sonde_instances(config))
+            output["sondes"] += flight.populate_sonde_instances(config)
     return output["platforms"], output["sondes"]
 
 
@@ -307,51 +307,35 @@ def create_and_populate_circle_object(
     return gridded
 
 
-def iterate_Sonde_method_over_dict_of_Sondes_objects(
-    obj: dict, functions: list[str | SondeProcess], config: configparser.ConfigParser
-) -> dict:
+def iterate_Sonde_method_over_list_of_Sondes_objects(
+    sondes: list[Sonde], functions: list, config: configparser.ConfigParser
+) -> list[Sonde]:
     """
-    Iterates over a dictionary of Sonde objects and applies a list of methods to each Sonde.
+    Iterates over a list of Sonde objects and applies a list of methods to each Sonde.
 
-    For each Sonde object in the dictionary, this function
+    For each Sonde object in the list, this function
     applies each method listed in the 'functions' key of the substep dictionary.
-    If the method returns a value, it stores the value in a new dictionary.
-    If the method returns None, it does not store the value in the new dictionary.
+    If the method returns a value, it stores the value in a new list.
+    If the method returns None, it does not store the value in the new list.
 
     The arguments for each method are determined by the `get_args_for_function` function,
     which uses the nondefaults dictionary and the config object.
-
-    Parameters
-    ----------
-    obj : dict
-        A dictionary of Sonde objects.
-    functions : list
-        a list of method names.
-    nondefaults : dict
-        A dictionary mapping function qualified names to dictionaries of arguments.
-    config : configparser.ConfigParser
-        A ConfigParser object containing configuration settings.
-
-    Returns
-    -------
-    dict
-        A dictionary of Sonde objects with the results of the methods applied to them (keys where results are None are not included).
     """
-    my_dict = obj
+
     for function in functions:
-        new_dict = {}
-        for key, value in tqdm(my_dict.items()):
+        new_sondes = []
+        for sonde in tqdm(sondes):
             if not callable(function):
                 function = getattr(Sonde, function)
                 assert isinstance(function, SondeProcess)
-            if value.cont:
-                result = function(value, **get_args_for_function(config, function))
+            if sonde.cont:
+                result = function(sonde, **get_args_for_function(config, function))
                 if result is not None:
-                    new_dict[key] = result
+                    new_sondes.append(result)
             else:
-                new_dict[key] = value
-        my_dict = new_dict
-    return my_dict
+                new_sondes.append(sonde)
+        sondes = new_sondes
+    return sondes
 
 
 def iterate_Circle_method_over_dict_of_Circle_objects(
@@ -405,8 +389,8 @@ def iterate_Circle_method_over_dict_of_Circle_objects(
     return obj
 
 
-def sondes_to_gridded(sondes: dict, config: configparser.ConfigParser):
-    gridded = Gridded(sondes, global_attrs=list(sondes.values())[0].global_attrs)
+def sondes_to_gridded(sondes: list[Sonde], config: configparser.ConfigParser):
+    gridded = Gridded(sondes, global_attrs=sondes[0].global_attrs)
     return gridded
 
 
@@ -510,7 +494,7 @@ pipeline = {
     },
     "create_L1": {
         "intake": "sondes",
-        "apply": iterate_Sonde_method_over_dict_of_Sondes_objects,
+        "apply": iterate_Sonde_method_over_list_of_Sondes_objects,
         "functions": [
             "filter_no_launch_detect",
             "run_aspen",
@@ -521,7 +505,7 @@ pipeline = {
     },
     "qc": {
         "intake": "sondes",
-        "apply": iterate_Sonde_method_over_dict_of_Sondes_objects,
+        "apply": iterate_Sonde_method_over_list_of_Sondes_objects,
         "functions": [
             "init_qc",
             "detect_floater",
@@ -537,9 +521,9 @@ pipeline = {
         ],
         "output": "sondes",
     },
-    "create_L2": {
+    "build_L2": {
         "intake": "sondes",
-        "apply": iterate_Sonde_method_over_dict_of_Sondes_objects,
+        "apply": iterate_Sonde_method_over_list_of_Sondes_objects,
         "functions": [
             "get_sonde_attributes",
             "add_l2_attributes_to_interim_l2_ds",
@@ -552,11 +536,11 @@ pipeline = {
             "write_l2",
         ],
         "output": "sondes",
-        "comment": "This steps creates the L2 files after the QC (user says how QC flags are used to go from L1 to L2) and then saves these as L2 NC datasets.",
+        "comment": "This steps creates and saves the L2 data after the QC.",
     },
     "process_L2": {
         "intake": "sondes",
-        "apply": iterate_Sonde_method_over_dict_of_Sondes_objects,
+        "apply": iterate_Sonde_method_over_list_of_Sondes_objects,
         "functions": [
             "check_interim_l3",
             "get_l2_filename",

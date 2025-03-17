@@ -1814,7 +1814,7 @@ class Sonde:
 
 @dataclass(order=True)
 class Gridded:
-    sondes: dict
+    sondes: list[Sonde]
     global_attrs: dict
     circles: dict = None
 
@@ -1848,7 +1848,7 @@ class Gridded:
         """
         list_of_l2_hist = [
             sonde.interim_l3_ds.attrs["history"].splitlines()[0]
-            for sonde in self.sondes.values()
+            for sonde in self.sondes
         ]
         aspen_versions = [asp.split("Aspen ")[1] for asp in list_of_l2_hist]
         if not aspen_versions.count(aspen_versions[0]) == len(aspen_versions):
@@ -1873,7 +1873,7 @@ class Gridded:
         """
         list_of_l2_hist = [
             sonde.interim_l3_ds.attrs["history"].splitlines()[1]
-            for sonde in self.sondes.values()
+            for sonde in self.sondes
         ]
         pydrop_versions = [pydr.split("pydropsonde ")[-1] for pydr in list_of_l2_hist]
         if not pydrop_versions.count(pydrop_versions[0]) == len(pydrop_versions):
@@ -1891,9 +1891,7 @@ class Gridded:
         self : Gridded
             Returns the Gridded object.
         """
-        first_sonde_history = list(self.sondes.values())[0].interim_l3_ds.attrs[
-            "history"
-        ]
+        first_sonde_history = self.sondes[0].interim_l3_ds.attrs["history"]
         new_hist = ""
         for line_nb, line in enumerate(first_sonde_history.splitlines()):
             split_line = line.split(" ", 1)
@@ -1916,7 +1914,7 @@ class Gridded:
         self : Gridded
             Returns the Gridded object.
         """
-        sonde = list(self.sondes.values())[0]
+        sonde = self.sondes[0]
         self.alt_dim = sonde.alt_dim
         self.sonde_dim = sonde.sonde_dim
         return self
@@ -1939,7 +1937,7 @@ class Gridded:
         """
         if sortby is None:
             sortby = list(hh.l3_coords.keys())[0]
-        list_of_l2_ds = [sonde.interim_l3_ds for sonde in self.sondes.values()]
+        list_of_l2_ds = [sonde.interim_l3_ds for sonde in self.sondes]
         try:
             ds = xr.concat(
                 list_of_l2_ds,
@@ -2064,10 +2062,10 @@ class Gridded:
             self.l3_dir = l3_dir
         elif self.sondes is not None:
             self.l3_dir = (
-                list(self.sondes.values())[0]
+                self.sondes[0]
                 .l2_dir.replace("Level_2", "Level_3")
-                .replace(list(self.sondes.values())[0].flight_id, "")
-                .replace(list(self.sondes.values())[0].platform_id, "")
+                .replace(self.sondes[0].flight_id, "")
+                .replace(self.sondes[0].platform_id, "")
             )
         else:
             raise ValueError("No sondes and no l3 directory given, cannot continue ")

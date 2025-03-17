@@ -54,7 +54,7 @@ def check_launch_detect_in_afile(a_file: Optional[str]) -> Optional[bool]:
                 return bool(int(line.split("=")[1]))
 
 
-def get_sonde_id(d_file: "str") -> str:
+def get_serial_id(d_file: "str") -> str:
     """Returns Sonde ID for a given D-file
 
     Given the path for an D-file, the function reads in the first line (header) and extracts the sonde ID.

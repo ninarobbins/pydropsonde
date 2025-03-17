@@ -1,7 +1,6 @@
 import glob
 import logging
-from pathlib import Path as pp
-from typing import Dict
+from pathlib import Path
 import os.path
 import warnings
 import ast
@@ -152,26 +151,25 @@ class Flight:
         """
         quicklooks_path_str = self.l0_dir.replace("Level_0", "Quicklooks")
 
-        if pp(quicklooks_path_str).exists():
+        if Path(quicklooks_path_str).exists():
             self.logger.info(f"Path exists: {quicklooks_path_str=}")
         else:
-            pp(quicklooks_path_str).mkdir(parents=True)
+            Path(quicklooks_path_str).mkdir(parents=True)
             self.logger.info(
                 f"Path did not exist. Created directory: {quicklooks_path_str=}"
             )
         return quicklooks_path_str
 
-    def populate_sonde_instances(self, config) -> Dict:
-        """Returns a dictionary of `Sonde` class instances for all A-files found in `flight_idpath`
-        and also sets the dictionary as value of `Sondes` attribute
-        """
+    def populate_sonde_instances(self, config) -> list[Sonde]:
+        """Returns a list of `Sonde` class instances for all D-files found in `flight_idpath`"""
         dfiles = self.get_all_dfiles()
 
-        Sondes = {}
+        Sondes = []
 
         for d_file in dfiles:
-            sonde_id = rr.get_sonde_id(d_file)
-            if pp(a_file := d_file.replace("D", "A")).is_file():
+            d_file = Path(d_file)
+            serial_id = rr.get_serial_id(d_file)
+            if Path(a_file := d_file.parent / d_file.name.replace("D", "A")).is_file():
                 launch_detect = rr.check_launch_detect_in_afile(a_file)
                 launch_time = rr.get_launch_time(a_file)
             else:
@@ -179,10 +177,10 @@ class Flight:
                 warnings.warn(
                     f"No valid a-file for {self}, {self.flight_id} - there is no launch detect or time information"
                 )
-            Sondes[sonde_id] = Sonde(_serial_id=sonde_id, _launch_time=launch_time)
-            Sondes[sonde_id].add_launch_detect(launch_detect)
-            Sondes[sonde_id].sonde_rev = rr.get_sonde_rev(a_file)
-            Sondes[sonde_id].add_flight_id(
+            sonde = Sonde(_serial_id=serial_id, _launch_time=launch_time)
+            sonde.add_launch_detect(launch_detect)
+            sonde.sonde_rev = rr.get_sonde_rev(a_file)
+            sonde.add_flight_id(
                 self.flight_id,
                 config.get(
                     "processor.Sonde.add_flight_id",
@@ -190,10 +188,10 @@ class Flight:
                     fallback=None,
                 ),
             )
-            Sondes[sonde_id].add_platform_id(self.platform_id)
-            Sondes[sonde_id].add_afile(a_file)
-            Sondes[sonde_id].dfile = d_file
-            Sondes[sonde_id].add_level_dir(
+            sonde.add_platform_id(self.platform_id)
+            sonde.afile = a_file
+            sonde.dfile = d_file
+            sonde.add_level_dir(
                 l0_dir=config.get(
                     "processor.Sonde.add_level_dir", "l0_dir", fallback=None
                 ),
@@ -207,7 +205,7 @@ class Flight:
 
             global_attrs = get_global_attrs_from_config(config)
             global_attrs.update(get_level_specific_attrs_from_config(config))
-            Sondes[sonde_id].add_global_attrs(global_attrs)
+            sonde.add_global_attrs(global_attrs)
 
             broken_file = config.get("OPTIONAL", "broken_sonde_file", fallback=None)
             if broken_file is not None:
@@ -215,7 +213,9 @@ class Flight:
                     file_content = file.read()
 
                 data_dict = ast.literal_eval(file_content)
-                Sondes[sonde_id].add_broken(data_dict)
+                sonde.add_broken(data_dict)
+
+            Sondes.append(sonde)
 
         object.__setattr__(self, "Sondes", Sondes)
 
