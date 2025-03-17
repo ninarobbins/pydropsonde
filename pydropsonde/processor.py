@@ -47,6 +47,9 @@ class Sonde:
     _: KW_ONLY
     _launch_time: Optional[Any] = None
     sonde_rev: Optional[str] = None
+    launch_detect: Optional[bool] = None
+    afile: Optional[str] = None
+    dfile: Optional[str] = None
 
     @property
     def flight_id(self):
@@ -723,7 +726,7 @@ class Sonde:
                 if hasattr(self.aspen_ds, "launch_time")
                 else np.datetime64(self.aspen_ds.base_time.values)
             ),
-            "is_floater": self.qc.is_floater.__str__(),
+            "is_floater": str(self.qc.is_floater),
             "sonde_serial_ID": self.serial_id,
             "sonde_ID": self.id,
         }
