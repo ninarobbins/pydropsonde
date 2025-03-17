@@ -75,7 +75,10 @@ class Circle:
                 errors="ignore",
             )
         for var in data_vars:
-            del ds[var].attrs["ancillary_variables"]
+            try:
+                del ds[var].attrs["ancillary_variables"]
+            except KeyError:
+                pass
         self.circle_ds = ds
 
         return self
