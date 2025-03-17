@@ -12,6 +12,9 @@ import numpy as np
 import os
 import xarray as xr
 from typing import Protocol, runtime_checkable, Optional
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @runtime_checkable
@@ -329,9 +332,14 @@ def iterate_Sonde_method_over_list_of_Sondes_objects(
                 function = getattr(Sonde, function)
                 assert isinstance(function, SondeProcess)
             if sonde.cont:
+                logger.debug(f"Applying {function.__name__} to Sonde {sonde}")
                 result = function(sonde, **get_args_for_function(config, function))
                 if result is not None:
                     new_sondes.append(result)
+                else:
+                    logger.debug(
+                        f"Sonde {sonde} was dropped after applying {function.__name__}"
+                    )
             else:
                 new_sondes.append(sonde)
         sondes = new_sondes

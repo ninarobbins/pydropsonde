@@ -1,4 +1,6 @@
 import logging
+import datetime
+import os
 
 
 # create pydropsonde logger
@@ -9,15 +11,18 @@ logger.setLevel(logging.DEBUG)
 fh_info = logging.FileHandler("info.log")
 fh_info.setLevel(logging.INFO)
 
-fh_debug = logging.FileHandler("debug.log", mode="w")
+debug_filename = f"debug.{datetime.datetime.now():%Y%m%d%H%M%S}.log"
+fh_debug = logging.FileHandler(debug_filename)
 fh_debug.setLevel(logging.DEBUG)
+os.symlink(debug_filename, debug_filename + ".link")
+os.rename(debug_filename + ".link", "debug.latest.log")
 
 # Console handler
 ch = logging.StreamHandler()
 ch.setLevel(logging.WARNING)
 
 # Formatter
-log_format = "{asctime}  {levelname:^8s} {name:^20s} {filename:^20s} Line:{lineno:03d}:\n{message}"
+log_format = "{asctime}  {levelname:^8s} {name:^20s}: {message}"
 formatter = logging.Formatter(log_format, style="{")
 fh_info.setFormatter(formatter)
 fh_debug.setFormatter(formatter)
