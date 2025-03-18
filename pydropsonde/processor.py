@@ -2063,6 +2063,21 @@ class Gridded:
             ds = hx.add_ancillary_var(ds, "theta", "ta_qc")
 
         self.concat_sonde_ds = ds.drop_vars(qc_vars)
+
+        ds.attrs = {}
+        ds.attrs.update(
+            self.global_attrs["global"],
+        )
+        ds.attrs.update(
+            self.global_attrs["l3"],
+        )
+        l3_title = self.global_attrs["l3"].get(
+            "title", self.global_attrs.get("title", "Dropsonde Data") + " Level 3"
+        )
+        ds.attrs.update(dict(history=self.history, title=l3_title + " QC"))
+        ds.attrs["summary"] = f"QC dataset for {l3_title}"
+        ds.attrs["keywords"] = ds.attrs.get("keywords", "") + ", QC"
+
         if filename is not None:
             hx.write_ds(
                 ds[qc_vars],
