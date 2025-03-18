@@ -2167,9 +2167,21 @@ class Gridded:
         if l3_dir is None:
             l3_dir = self.l3_dir
         ds = self.concat_sonde_ds
-
+        ds.attrs = {}
         ds.attrs.update(
-            history=self.history,
+            self.global_attrs["global"],
+        )
+        ds.attrs.update(
+            self.global_attrs["l3"],
+        )
+        ds.attrs.update(
+            dict(
+                history=self.history,
+                title=self.global_attrs["l3"].get(
+                    "title",
+                    self.global_attrs.get("title", "Dropsonde Data") + " Level 3",
+                ),
+            )
         )
         hx.write_ds(
             ds=self.concat_sonde_ds,
