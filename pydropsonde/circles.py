@@ -362,7 +362,7 @@ class Circle:
                             },
                         )
 
-                ds = self.circle_ds.assign(assign_dict)
+        ds = self.circle_ds.assign(assign_dict)
         ds[alt_var].attrs.update(alt_attrs)
 
         self.circle_ds = ds
@@ -519,6 +519,8 @@ class Circle:
             [f"{var}_d{var}dy" for var in variables],
             errors="ignore",
         )
+        if "iwv_mean" in self.circle_ds.variables:
+            self.circle_ds["iwv_mean"] = self.circle_ds["iwv_mean"].mean("altitude")
         return self
 
     def add_density(self):
