@@ -376,7 +376,7 @@ class Circle:
         alt_dim = self.alt_dim
         sonde_dim = self.sonde_dim
         if variables is None:
-            variables = ["u", "v"]
+            variables = ["u", "v", "q", "ta", "p", "rh", "theta"]
         ds = self.circle_ds
 
         dx_denominator = ((ds.x - ds.x.mean(dim=sonde_dim)) ** 2).sum(dim=sonde_dim)
@@ -511,7 +511,7 @@ class Circle:
 
     def drop_dvardxy(self, variables=None):
         if variables is None:
-            variables = ["iwv", "p", "rh", "q", "ta", "theta", "wspd", "wdir"]
+            variables = ["iwv", "wspd", "wdir"]
         self.circle_ds = self.circle_ds.drop_vars(
             [f"{var}_d{var}dx" for var in variables],
             errors="ignore",
