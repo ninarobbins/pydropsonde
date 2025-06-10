@@ -294,8 +294,8 @@ class Circle:
                 "p",
                 "rh",
                 "theta",
-                "w_dir",
-                "w_spd",
+                "wdir",
+                "wspd",
                 "iwv",
             ]
         alt_var = self.alt_dim
@@ -511,7 +511,7 @@ class Circle:
 
     def drop_dvardxy(self, variables=None):
         if variables is None:
-            variables = ["iwv", "p", "rh", "q", "ta", "theta", "w_spd", "w_dir"]
+            variables = ["iwv", "p", "rh", "q", "ta", "theta", "wspd", "wdir"]
         self.circle_ds = self.circle_ds.drop_vars(
             [f"{var}_d{var}dx" for var in variables],
             errors="ignore",
