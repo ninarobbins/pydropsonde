@@ -1160,7 +1160,7 @@ class Sonde:
         """
         self.interim_l3_ds = hh.calc_iwv(
             self.interim_l3_ds,
-            qc_var=["rh_qc", "ta_qc"],
+            qc_var=["rh_qc", "ta_qc", "p_qc"],
             alt_dim=self.alt_dim,
             sonde_dim=self.sonde_dim,
         )
