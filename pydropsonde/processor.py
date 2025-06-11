@@ -269,7 +269,7 @@ class Sonde:
                     f"type=bind,source={l0_dir},target=/input",
                     "--mount",
                     f"type=bind,source={l1_dir},target=/output",
-                    "ghcr.io/atmdrops/aspenqc:4.0.2",
+                    "ghcr.io/atmdrops/aspenqc:4.0.4",
                     "-i",
                     f"/input/{dname}",
                     "-n",
