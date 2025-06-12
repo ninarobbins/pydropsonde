@@ -279,8 +279,8 @@ def create_and_populate_circle_object(
         )
 
         circle_ds = ds.where(
-            (ds["sonde_time"] >= np.datetime64(segment["start"]))
-            & (ds["sonde_time"] < np.datetime64(segment["end"])),
+            (ds["launch_time"] >= np.datetime64(segment["start"]))
+            & (ds["launch_time"] < np.datetime64(segment["end"])),
             drop=True,
         )
         circle_ds = xr.concat(
@@ -291,7 +291,7 @@ def create_and_populate_circle_object(
         )
         if circle_ds.sonde_id.size > 0:
             circle = Circle(
-                circle_ds=circle_ds.sortby("sonde_time"),
+                circle_ds=circle_ds.sortby("launch_time"),
                 flight_id=segment["flight_id"],
                 platform_id=segment["platform_id"],
                 segment_id=segment["segment_id"],

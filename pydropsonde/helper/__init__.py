@@ -111,7 +111,7 @@ l2_flight_attributes_map = {
 }
 
 l3_coords = dict(
-    sonde_time={"long_name": "dropsonde launch time", "time_zone": "UTC"},
+    launch_time={"long_name": "dropsonde launch time", "time_zone": "UTC"},
     aircraft_longitude={
         "long_name": "aircraft longitude at launch",
         "units": "degrees_east",

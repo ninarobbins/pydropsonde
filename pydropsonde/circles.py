@@ -195,7 +195,7 @@ class Circle:
                 ),
                 circle_time=(
                     [],
-                    self.circle_ds["sonde_time"].isel(sonde=[0, -1]).mean().values,
+                    self.circle_ds["launch_time"].isel(sonde=[0, -1]).mean().values,
                     circle_time_attrs,
                 ),
                 circle_lon=([], self.clon, circle_lon_attrs),

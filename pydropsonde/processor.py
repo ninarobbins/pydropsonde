@@ -730,7 +730,7 @@ class Sonde:
         """
         sonde_attrs = {
             "platform_id": self.platform_id,
-            "sonde_time": (
+            "launch_time": (
                 str(self.aspen_ds.launch_time.values)
                 if hasattr(self.aspen_ds, "launch_time")
                 else np.datetime64(self.aspen_ds.base_time.values)
@@ -1645,7 +1645,7 @@ class Sonde:
                 essential_attrs = hh.l3_coords
             except AttributeError:
                 essential_attrs = {
-                    "sonde_time": {
+                    "launch_time": {
                         "time_zone": "UTC",
                         "long_name": "dropsonde launch time",
                     }
@@ -1661,10 +1661,10 @@ class Sonde:
                 )
         ds = ds.assign(
             dict(
-                sonde_time=(
+                launch_time=(
                     self.sonde_dim,
                     [np.datetime64(self.launch_time, "ns")],
-                    essential_attrs["sonde_time"],
+                    essential_attrs["launch_time"],
                 )
             )
         )
@@ -1967,7 +1967,7 @@ class Gridded:
         data = []
         for circle in self.circles.values():
             circle_ds = circle.circle_ds
-            circle_ds = circle_ds.sortby("sonde_time")
+            circle_ds = circle_ds.sortby("launch_time")
 
             vars_sonde_dim = []
             vars_circle_dim = []
@@ -1978,7 +1978,7 @@ class Gridded:
                 else:
                     vars_circle_dim.append(var)
 
-            count.append(len(circle_ds.sonde_time))
+            count.append(len(circle_ds.launch_time))
             data.append(circle_ds)
 
         concatenated_sonde_ds = xr.concat(
