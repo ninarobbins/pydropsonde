@@ -85,17 +85,15 @@ def integrate_water_vapor(p, q, T=None, z=None, axis=0):
             q: specific humidity
             T: temperature
             z: height
-
     """
 
     def integrate_column(y, x, axis=0):
-        if np.all(x[:-1] >= x[1:]):
+        if T is None and z is None and np.all(x[:-1] >= x[1:]):
             return -np.trapz(y, x, axis=axis)
         else:
             return np.trapz(y, x, axis=axis)
 
     if T is None and z is None:
-        # Calculate IWV assuming hydrostatic equilibrium.
         g = constants.gravity_earth
         return integrate_column(q, p, axis=axis) / g
     elif T is None or z is None:
@@ -103,6 +101,5 @@ def integrate_water_vapor(p, q, T=None, z=None, axis=0):
             "Pass both `T` and `z` for non-hydrostatic calculation of the IWV."
         )
     else:
-        # Integrate the water vapor mass density for non-hydrostatic cases.
-        rho = density_from_q(p, T, q)  # water vapor density
+        rho = density_from_q(p, T, q)
         return integrate_column(q * rho, z, axis=axis)

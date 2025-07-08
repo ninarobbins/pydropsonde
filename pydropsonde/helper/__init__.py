@@ -5,6 +5,8 @@ from configparser import NoSectionError
 
 from moist_thermodynamics import functions as mtf
 from moist_thermodynamics import saturation_vapor_pressures as mtsvp
+from moist_thermodynamics import constants
+
 
 # Keys in l2_variables should be variable names in aspen_ds attribute of Sonde object
 l2_variables = {
@@ -323,11 +325,28 @@ def calc_rh_from_q(ds, alt_dim="altitude"):
     return ds
 
 
+def get_first_valid_value_from_surface(var_ds, alt_dim="alt"):
+    """
+    Input :
+        ds : Dataset
+        var : Variable name to find the first valid value for
+        alt_dim : Dimension name for the altitude
+    """
+    idx = var_ds.notnull().argmax(dim=alt_dim)
+    alt = var_ds[alt_dim].isel(**{alt_dim: idx})
+    val = var_ds.isel(**{alt_dim: idx})
+    return idx, alt, val
+
+
 def calc_iwv(ds, sonde_dim="sonde_id", alt_dim="alt", max_alt=300, qc_var=None):
     """
     Input :
 
-        dataset : Dataset
+        ds : Dataset
+        sonde_dim : Dimension name for the sonde identifier
+        alt_dim : Dimension name for the altitude
+        max_alt : Maximum altitude to consider for integrated water vapor calculation
+        qc_var : List of quality control variable names to check for valid data
 
     Output :
 
@@ -338,22 +357,59 @@ def calc_iwv(ds, sonde_dim="sonde_id", alt_dim="alt", max_alt=300, qc_var=None):
     if qc_var is not None:
         qc_vals = [ds[var].values for var in qc_var]
     if (qc_var is None) or (qc_vals.count(0) == len(qc_vals)):
-        pressure = ds.p.values[0]
-        temperature = ds.ta.values
-        q = ds.q.values[0]
+        alt = ds[alt_dim]
+        pressure = ds.p
+        temperature = ds.ta
+        q = ds.q
 
-        alt = ds[alt_dim].values
-
-        mask_p = ~np.isnan(pressure)
-        mask_t = ~np.isnan(temperature)
-        mask_q = ~np.isnan(q)
-        mask = mask_p & mask_t & mask_q
-        iwv = physics.integrate_water_vapor(
-            q=q[mask], p=pressure[mask], T=temperature[mask], z=alt[mask]
+        idx_q, alt_q, val_q = get_first_valid_value_from_surface(q, alt_dim=alt_dim)
+        idx_p, alt_p, val_p = get_first_valid_value_from_surface(
+            pressure, alt_dim=alt_dim
+        )
+        idx_ta, alt_ta, val_ta = get_first_valid_value_from_surface(
+            temperature, alt_dim=alt_dim
         )
 
+        mask_q = alt_q < max_alt
+        mask_p = alt_p < max_alt
+        mask_ta = alt_ta < max_alt
+
+        val_q = val_q.where(mask_q)
+        val_p = val_p.where(mask_p)
+        val_ta = val_ta.where(mask_ta)
+
+        dz = alt_p - alt
+
+        g = constants.gravity_earth
+        Rd = constants.Rd
+
+        lapse_rate = (
+            (ds.ta.isel(**{alt_dim: idx_ta + 1}) - val_ta)
+            / (ds[alt_dim].isel(**{alt_dim: idx_ta + 1}) - alt_ta)
+        ).where(mask_ta)
+
+        q_surface_filled = xr.where((alt < alt_q) & mask_q, val_q, q)
+        p_surface_filled = xr.where(
+            (alt < alt_p) & mask_p, val_p * np.exp(-(g / (Rd * val_ta)) * dz), pressure
+        )
+        ta_surface_filled = xr.where(
+            (alt < alt_ta) & mask_ta, val_ta - lapse_rate * dz, temperature
+        )
+
+        q_interp = q_surface_filled.interpolate_na(dim=alt_dim, method="cubic")
+        p_interp = p_surface_filled.interpolate_na(dim=alt_dim, method="cubic")
+        ta_interp = ta_surface_filled.interpolate_na(dim=alt_dim, method="cubic")
+
+        mask_p = ~np.isnan(p_interp)
+        mask_t = ~np.isnan(ta_interp)
+        mask_q = ~np.isnan(q_interp)
+        mask = mask_p & mask_t & mask_q
+        iwv = physics.integrate_water_vapor(
+            q=q_interp[mask], p=p_interp[mask], T=ta_interp[mask], z=alt[mask]
+        )
     else:
         iwv = np.nan
+
     ds_iwv = xr.DataArray([iwv], dims=[sonde_dim], coords={})
     ds_iwv.name = "iwv"
     ds_iwv.attrs = dict(
