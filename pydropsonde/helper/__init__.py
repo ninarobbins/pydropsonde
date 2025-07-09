@@ -376,7 +376,10 @@ def calc_iwv(ds, sonde_dim="sonde_id", alt_dim="alt", max_alt=300, qc_var=None):
         mask_q = ~np.isnan(q_surface_filled)
         mask = mask_p & mask_t & mask_q
         iwv = physics.integrate_water_vapor(
-            q=q_surface_filled[mask], p=p_interp[mask], T=ta_interp[mask], z=alt[mask]
+            q=q_surface_filled[mask].values,
+            p=p_interp[mask].values,
+            T=ta_interp[mask].values,
+            z=alt[mask].values,
         )
 
     else:
