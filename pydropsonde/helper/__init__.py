@@ -5,8 +5,6 @@ from configparser import NoSectionError
 
 from moist_thermodynamics import functions as mtf
 from moist_thermodynamics import saturation_vapor_pressures as mtsvp
-from moist_thermodynamics import constants
-
 
 # Keys in l2_variables should be variable names in aspen_ds attribute of Sonde object
 l2_variables = {
@@ -362,51 +360,25 @@ def calc_iwv(ds, sonde_dim="sonde_id", alt_dim="alt", max_alt=300, qc_var=None):
         temperature = ds.ta
         q = ds.q
 
-        idx_q, alt_q, val_q = get_first_valid_value_from_surface(q, alt_dim=alt_dim)
-        idx_p, alt_p, val_p = get_first_valid_value_from_surface(
-            pressure, alt_dim=alt_dim
+        q_interp = q.interpolate_na(dim=alt_dim, method="linear")
+        log_p = np.log(pressure)
+        p_interp = np.exp(
+            log_p.interpolate_na(dim=alt_dim, method="linear", fill_value="extrapolate")
         )
-        idx_ta, alt_ta, val_ta = get_first_valid_value_from_surface(
-            temperature, alt_dim=alt_dim
-        )
-
-        mask_q = alt_q < max_alt
-        mask_p = alt_p < max_alt
-        mask_ta = alt_ta < max_alt
-
-        val_q = val_q.where(mask_q)
-        val_p = val_p.where(mask_p)
-        val_ta = val_ta.where(mask_ta)
-
-        dz = alt_p - alt
-
-        g = constants.gravity_earth
-        Rd = constants.Rd
-
-        lapse_rate = (
-            (ds.ta.isel(**{alt_dim: idx_ta + 1}) - val_ta)
-            / (ds[alt_dim].isel(**{alt_dim: idx_ta + 1}) - alt_ta)
-        ).where(mask_ta)
-
-        q_surface_filled = xr.where((alt < alt_q) & mask_q, val_q, q)
-        p_surface_filled = xr.where(
-            (alt < alt_p) & mask_p, val_p * np.exp(-(g / (Rd * val_ta)) * dz), pressure
-        )
-        ta_surface_filled = xr.where(
-            (alt < alt_ta) & mask_ta, val_ta - lapse_rate * dz, temperature
+        ta_interp = temperature.interpolate_na(
+            dim=alt_dim, method="linear", fill_value="extrapolate"
         )
 
-        q_interp = q_surface_filled.interpolate_na(dim=alt_dim, method="cubic")
-        p_interp = p_surface_filled.interpolate_na(dim=alt_dim, method="cubic")
-        ta_interp = ta_surface_filled.interpolate_na(dim=alt_dim, method="cubic")
+        q_surface_filled = q_interp.bfill(dim=alt_dim)
 
         mask_p = ~np.isnan(p_interp)
         mask_t = ~np.isnan(ta_interp)
-        mask_q = ~np.isnan(q_interp)
+        mask_q = ~np.isnan(q_surface_filled)
         mask = mask_p & mask_t & mask_q
         iwv = physics.integrate_water_vapor(
-            q=q_interp[mask], p=p_interp[mask], T=ta_interp[mask], z=alt[mask]
+            q=q_surface_filled[mask], p=p_interp[mask], T=ta_interp[mask], z=alt[mask]
         )
+
     else:
         iwv = np.nan
 
