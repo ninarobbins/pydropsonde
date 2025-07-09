@@ -369,7 +369,7 @@ def calc_iwv(ds, sonde_dim="sonde_id", alt_dim="alt", max_alt=300, qc_var=None):
             dim=alt_dim, method="linear", fill_value="extrapolate"
         )
 
-        q_surface_filled = q_interp.bfill(dim=alt_dim)
+        q_surface_filled = q_interp.bfill(dim=alt_dim, limit=int(max_alt / 10))
 
         mask_p = ~np.isnan(p_interp)
         mask_t = ~np.isnan(ta_interp)
