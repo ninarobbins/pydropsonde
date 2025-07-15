@@ -229,7 +229,7 @@ class Circle:
             {
                 var: (
                     ds[var].dims,
-                    ds[var].bfill(dim="altitude", limit=int(max_alt // 10)).values,
+                    ds[var].bfill(dim=self.alt_dim, limit=int(max_alt // 10)).values,
                     ds[var].attrs,
                 )
                 for var in constant_vars
