@@ -323,19 +323,6 @@ def calc_rh_from_q(ds, alt_dim="altitude"):
     return ds
 
 
-def get_first_valid_value_from_surface(var_ds, alt_dim="alt"):
-    """
-    Input :
-        ds : Dataset
-        var : Variable name to find the first valid value for
-        alt_dim : Dimension name for the altitude
-    """
-    idx = var_ds.notnull().argmax(dim=alt_dim)
-    alt = var_ds[alt_dim].isel(**{alt_dim: idx})
-    val = var_ds.isel(**{alt_dim: idx})
-    return idx, alt, val
-
-
 def calc_iwv(ds, sonde_dim="sonde_id", alt_dim="alt", max_alt=300, qc_var=None):
     """
     Input :
@@ -370,17 +357,19 @@ def calc_iwv(ds, sonde_dim="sonde_id", alt_dim="alt", max_alt=300, qc_var=None):
         )
 
         q_surface_filled = q_interp.bfill(dim=alt_dim, limit=int(max_alt / 10))
-
-        mask_p = ~np.isnan(p_interp)
-        mask_t = ~np.isnan(ta_interp)
-        mask_q = ~np.isnan(q_surface_filled)
-        mask = mask_p & mask_t & mask_q
-        iwv = physics.integrate_water_vapor(
-            q=q_surface_filled[mask].values,
-            p=p_interp[mask].values,
-            T=ta_interp[mask].values,
-            z=alt[mask].values,
-        )
+        if np.isnan(q_surface_filled[0]):
+            iwv = np.nan
+        else:
+            mask_p = ~np.isnan(p_interp)
+            mask_t = ~np.isnan(ta_interp)
+            mask_q = ~np.isnan(q_surface_filled)
+            mask = mask_p & mask_t & mask_q
+            iwv = physics.integrate_water_vapor(
+                q=q_surface_filled[mask].values,
+                p=p_interp[mask].values,
+                T=ta_interp[mask].values,
+                z=alt[mask].values,
+            )
 
     else:
         iwv = np.nan
