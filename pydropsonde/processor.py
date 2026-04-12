@@ -1511,7 +1511,7 @@ class Sonde:
                     interp_ds.time.astype(self.interim_l3_ds.time.dtype).values,
                     self.interim_l3_ds.time.attrs,
                 )
-            ).drop("time")
+            ).drop_vars("time")
         elif method == "bin":
             mean_ds = {}
             count_dict = {}
