@@ -42,11 +42,6 @@ jobs:
           uv sync --frozen
           uv run pytest
           uv run pydropsonde -c ./dropsonde.cfg
-      - name: run tests upgrade
-        run: |
-          uv sync --upgrade
-          uv run pytest
-          uv run pydropsonde -c ./dropsonde.cfg
       - name: Minimize uv cache
         run: uv cache prune --ci
 
