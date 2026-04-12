@@ -72,14 +72,15 @@ def get_chunks(ds, var, object_dims=("sonde", "circle"), alt_dim="alt"):
 
 
 def get_time_encoding(ds_time):
-    min_time = np.nanmin(ds_time.values)
-    max_time = np.nanmax(ds_time.values)
-    if np.isnan(min_time):
+    if np.all(np.isnan(ds_time.values)):
         min_time = np.datetime64("1970-01-01T00:00:00", "us")
-    if (max_time - min_time) > np.timedelta64(2**53 - 1, "us"):
-        warnings.warn(
-            "your time range is larger than 2**53 microseconds, consider using another encoding for time"
-        )
+    else:
+        min_time = np.nanmin(ds_time.values)
+        max_time = np.nanmax(ds_time.values)
+        if (max_time - min_time) > np.timedelta64(2**53 - 1, "us"):
+            warnings.warn(
+                "your time range is larger than 2**53 microseconds, consider using another encoding for time"
+            )
     return {
         "dtype": "int64",
         "units": f"microseconds since {np.datetime_as_string(min_time, unit='us', timezone='UTC')}",
