@@ -31,8 +31,6 @@ jobs:
           restore-keys: |
             uv-${{ runner.os }}
 
-      - name: Create virtual environment
-        run: uv venv
       - name: run tests locked
         run: |
           uv lock
