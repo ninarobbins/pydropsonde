@@ -2092,6 +2092,7 @@ class Gridded:
                 list_of_l2_ds,
                 dim=self.sonde_dim,
                 join="exact",
+                data_vars="all",
                 combine_attrs="drop_conflicts",
             ).sortby(sortby)
         except AttributeError:
