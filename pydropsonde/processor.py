@@ -1381,7 +1381,7 @@ class Sonde:
 
         return self
 
-    def remove_non_mono_incr_alt(self, bottom_up=True, tried=False):
+    def remove_non_mono_incr_alt(self, bottom_up=True, thres=3, tried=False):
         """
         This function removes the indices in the some height variable that are not monotonically increasing
         """
@@ -1412,14 +1412,16 @@ class Sonde:
             else:
                 alt[idx] = np.nan
             idx += 1
-        if (np.count_nonzero(alt[~np.isnan(alt)]) < 3) and (not tried):
+        if (np.count_nonzero(alt[~np.isnan(alt)]) < thres) and (not tried):
             print(
                 f"Using bottom up {bottom_up} did not work for {self} from {self.launch_time}. Trying the other way around"
             )
-            self = self.remove_non_mono_incr_alt(bottom_up=(not bottom_up), tried=True)
+            self = self.remove_non_mono_incr_alt(
+                bottom_up=(not bottom_up), thres=thres, tried=True
+            )
             return self
 
-        if (np.count_nonzero(alt[~np.isnan(alt)]) < 3) and tried:
+        if (np.count_nonzero(alt[~np.isnan(alt)]) < thres) and tried:
             print(f"All values are non-monotonic in {self} from {self.launch_time}")
             return None
 
