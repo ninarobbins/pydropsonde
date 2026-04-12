@@ -65,9 +65,9 @@ def integrate_water_vapor(p, q, T=None, z=None, axis=0):
 
     def integrate_column(y, x, axis=0):
         if np.all(x[:-1] >= x[1:]):
-            return -np.trapz(y, x, axis=axis)
+            return -np.trapezoid(y, x, axis=axis)
         else:
-            return np.trapz(y, x, axis=axis)
+            return np.trapezoid(y, x, axis=axis)
 
     if T is None and z is None:
         # Calculate IWV assuming hydrostatic equilibrium.
