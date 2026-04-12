@@ -36,16 +36,17 @@ jobs:
           uv lock
           uv sync --locked
           uv run pytest
+          uv run pydropsonde -c ./dropsonde.cfg
       - name: run tests frozen
         run: |
           uv sync --frozen
           uv run pytest
-      - name: run tests
+          uv run pydropsonde -c ./dropsonde.cfg
+      - name: run tests upgrade
         run: |
           uv sync --upgrade
           uv run pytest
-      - name: Run pipeline
-        run: uv run pydropsonde -c ./dropsonde.cfg
+          uv run pydropsonde -c ./dropsonde.cfg
       - name: Minimize uv cache
         run: uv cache prune --ci
 
