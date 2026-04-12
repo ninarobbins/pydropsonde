@@ -455,7 +455,9 @@ class Sonde:
         """
         if hasattr(self.qc, "is_floater"):
             if self.qc.is_floater:
-                cropped_ds = self.aspen_ds.sel(time=slice(self.landing_time, None))
+                cropped_ds = self.aspen_ds.sortby("time").sel(
+                    time=slice(None, self.landing_time)
+                )
                 self.cropped_aspen_ds = cropped_ds
                 self.qc.set_qc_ds(cropped_ds)
 
